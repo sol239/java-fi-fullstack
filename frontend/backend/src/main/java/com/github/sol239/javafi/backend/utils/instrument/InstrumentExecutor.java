@@ -1,6 +1,6 @@
 package com.github.sol239.javafi.backend.utils.instrument;
 
-import com.github.sol239.javafi.utils.database.DBHandler;
+import com.github.sol239.javafi.backend.utils.database.DBHandler;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

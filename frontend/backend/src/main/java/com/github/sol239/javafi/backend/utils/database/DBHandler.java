@@ -1,8 +1,8 @@
 package com.github.sol239.javafi.backend.utils.database;
 
-import com.github.sol239.javafi.utils.DataObject;
-import com.github.sol239.javafi.utils.instrument.IdValueRecord;
-import io.github.cdimascio.dotenv.Dotenv;
+import com.github.sol239.javafi.backend.utils.DataObject;
+import com.github.sol239.javafi.backend.utils.instrument.IdValueRecord;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -12,12 +12,14 @@ import java.sql.*;
 import java.util.*;
 
 import static java.sql.DriverManager.getConnection;
-import io.github.cdimascio.dotenv.Dotenv;
 
 /**
  * DBHandler is a utility class for managing database connections and operations.
  */
 public class DBHandler {
+
+    @Value("${db.url}")
+    private String dbUrl;
 
     /**
      * The connection to the H2 database.
@@ -56,11 +58,9 @@ public class DBHandler {
      * Establishes a connection to the H2 database using the provided URL.
      */
     public void connect() {
-        Dotenv dotenv = Dotenv.load();
-        String DB_URL = dotenv.get("DB_URL");
         this.conn = null;
         try {
-            this.conn = getConnection(DB_URL);
+            this.conn = getConnection(dbUrl);
         } catch (SQLException e) {
             System.out.println("Connection failed: " + e.getMessage());
         }

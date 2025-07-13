@@ -1,6 +1,6 @@
 package com.github.sol239.javafi.backend.utils.instrument.instruments;
 
-import com.github.sol239.javafi.utils.instrument.JavaInstrument;
+import com.github.sol239.javafi.backend.utils.instrument.JavaInstrument;
 import com.google.auto.service.AutoService;
 
 import java.util.HashMap;

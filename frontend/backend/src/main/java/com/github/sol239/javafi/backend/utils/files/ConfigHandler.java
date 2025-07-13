@@ -3,7 +3,7 @@
  */
 package com.github.sol239.javafi.backend.utils.files;
 
-import com.github.sol239.javafi.utils.DataObject;
+import com.github.sol239.javafi.backend.utils.DataObject;
 
 import java.io.*;
 import java.lang.reflect.Field;

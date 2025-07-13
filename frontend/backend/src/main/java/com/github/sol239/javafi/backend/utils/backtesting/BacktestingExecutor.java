@@ -4,8 +4,8 @@
 package com.github.sol239.javafi.backend.utils.backtesting;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.sol239.javafi.utils.DataObject;
-import com.github.sol239.javafi.utils.database.DBHandler;
+import com.github.sol239.javafi.backend.utils.DataObject;
+import com.github.sol239.javafi.backend.utils.database.DBHandler;
 
 import java.io.File;
 import java.io.IOException;
