@@ -26,6 +26,6 @@ public class Chart {
     private double volume;
     private LocalDateTime date;
 
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = "TEXT")
     private String extraData;
 }
