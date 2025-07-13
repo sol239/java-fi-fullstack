@@ -1,60 +1,74 @@
 <template>
-  <div>
-    <label for="table-select">Select Table:</label>
-    <select id="table-select" v-model="selectedTable" @change="fetchChartData">
-      <option disabled value="">-- Select a table --</option>
-      <option v-for="table in tables" :key="table" :value="table">{{ table }}</option>
-    </select>
-
-    <div ref="chartContainer" style="width: 700px; height: 400px; margin-top: 20px;"></div>
-  </div>
+    <UCard>
+      <div ref="chartContainer" style="width: 700px; height: 400px; margin-top: 20px;"></div>
+    </UCard>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import * as LightweightCharts from 'lightweight-charts'
-import { useTableNamesStore } from '@/stores/tableNames'
+import { useSelectedTableStore } from '@/stores/selectedTable'
 
-const tableNamesStore = useTableNamesStore()
-const tables = tableNamesStore.tableNameList
-
-
-console.log(tables)  // Debugging: Check the table names
-
-const selectedTable = ref('')
+const selectedTableStore = useSelectedTableStore()
+const tableName = selectedTableStore.selectedTable
 
 const chartContainer = ref(null)
 let chart = null
-let lineSeries = null
+let candlestickSeries = null
 
 onMounted(() => {
-  chart = LightweightCharts.createChart(chartContainer.value, { width: 700, height: 400 })
-  lineSeries = chart.addSeries(LightweightCharts.LineSeries)
+  if (chartContainer.value) {
+    const chartOptions = { 
+      layout: { 
+        textColor: 'white', 
+        background: { type: 'solid', color: '#0f172b' }
+      } 
+    }
+
+    chart = LightweightCharts.createChart(chartContainer.value, chartOptions)
+
+    candlestickSeries = chart.addSeries(LightweightCharts.CandlestickSeries, { 
+      upColor: '#00DC82', 
+      downColor: '#ef5350', 
+      borderVisible: false, 
+      wickUpColor: '#26a69a', 
+      wickDownColor: '#ef5350' 
+    })
+
+    // Fetch data on mount if tableName is already set
+    if (tableName) {
+      fetchChartData()
+    }
+  }
 })
+
+// Watch for changes in the selected table from the store
+watch(() => selectedTableStore.selectedTable, (newTableName) => {
+  if (newTableName) {
+    fetchChartData()
+  }
+}, { immediate: true })
 
 // Fetch data from backend API and update chart
 async function fetchChartData() {
-  if (!selectedTable.value) return
+  const currentTableName = selectedTableStore.selectedTable
+  if (!currentTableName) return
 
   try {
-    const response = await fetch(`http://localhost:8080/api/data?table=${encodeURIComponent(selectedTable.value)}`)
+    const encodedTableName = encodeURIComponent(currentTableName)
+    
+    console.log(`Fetching data for table: ${encodedTableName}`)
+
+    const response = await fetch(`/api/data?table=${encodedTableName}`)
     if (!response.ok) {
       throw new Error('Failed to fetch chart data')
     }
     const data = await response.json()
 
-    // data should be [{ time, value }, ...] with time as string (YYYY-MM-DD format)
-    lineSeries.setData(data)
+    // data should be [{ open, high, low, close, time }, ...] with time as Unix timestamp
+    candlestickSeries.setData(data)
   } catch (error) {
     console.error(error)
-    alert('Error loading chart data')
   }
 }
 </script>
-
-<style scoped>
-select {
-  padding: 6px 12px;
-  font-size: 16px;
-}
-</style>

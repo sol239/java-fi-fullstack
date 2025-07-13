@@ -26,11 +26,19 @@
       <UBadge variant="soft" class="mb-3">
         {{ tableNames.length }} table{{ tableNames.length !== 1 ? 's' : '' }} found
       </UBadge>
-      <URadioGroup
-        v-model="selectedTable"
-        :items="tableNamesStore.tableNameList.map(name => ({ label: name, value: name }))"
-        class="mb-4"
-      />
+      <!-- Button for selecting a table to display -->
+      <div class="max-h-64 overflow-y-auto space-y-2 p-4 border rounded">
+        <UButton
+          v-for="item in tableNamesStore.tableNameList.map(name => ({ label: name, id: name }))"
+          :key="item.id"
+          :color="selectedTableStore.selectedTable === item.id ? 'primary' : 'gray'"
+          variant="subtle"
+          class="w-full"
+          @click="selectedTableStore.setSelectedTable(item.id)"
+        >
+          {{ item.label }}
+        </UButton>
+      </div>
     </div>
 
     <template #footer>
@@ -48,8 +56,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
 import { useTableNamesStore } from '~/stores/tableNames'
+import { useSelectedTableStore } from '~/stores/selectedTable' // <-- import the store
 
 const { data: tableNames, pending, error, refresh } = await useFetch('/api/tables', {
   default: () => [],
@@ -60,6 +68,7 @@ console.log(tableNames)         // This is a ref object, not the array
 console.log(tableNames.value)   // This is the array of table names
 
 const tableNamesStore = useTableNamesStore()
+const selectedTableStore = useSelectedTableStore() // <-- use the store
 
 const tableNamesArray = Array.isArray(tableNames.value)
   ? tableNames.value.map(String)
@@ -67,5 +76,4 @@ const tableNamesArray = Array.isArray(tableNames.value)
 
 tableNamesStore.setTableNames(tableNamesArray)
 
-const selectedTable = ref(null)
 </script>

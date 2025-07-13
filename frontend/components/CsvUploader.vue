@@ -77,6 +77,8 @@ const uploadCsv = async () => {
   error.value = ''
   message.value = ''
 
+  // TODO: fix api endpoint
+
   try {
     const formData = new FormData()
     formData.append('tableName', formState.tableName)

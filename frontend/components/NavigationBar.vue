@@ -16,6 +16,11 @@ const navItems: NavigationMenuItem[] = [
     to: '/charts',
     data_target: 'charts',
   },
+  {
+    label: 'Demo',
+    to: '/demo',
+    data_target: 'demo',
+  },
 ];
 
 </script>
