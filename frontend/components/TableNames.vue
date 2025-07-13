@@ -49,4 +49,9 @@ const tableNamesArray = Array.isArray(tableNames.value)
 
 tableNamesStore.setTableNames(tableNamesArray)
 
+// Set first table as default selection if available
+if (tableNamesArray.length && !selectedTableStore.selectedTable) {
+  selectedTableStore.selectedTable = tableNamesArray[0]
+}
+
 </script>
