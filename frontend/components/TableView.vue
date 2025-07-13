@@ -1,7 +1,9 @@
 <template>
-    <UCard>
-      <div ref="chartContainer" style="width: 700px; height: 400px; margin-top: 20px;"></div>
-    </UCard>
+  <!-- TODO: Fix height - it has to be automatic -->
+  <UCard>
+    <TableNames />
+    <div ref="chartContainer" style="width: auto; height: 600px; margin-top: 20px;"></div>
+  </UCard>
 </template>
 
 <script setup>
@@ -18,21 +20,21 @@ let candlestickSeries = null
 
 onMounted(() => {
   if (chartContainer.value) {
-    const chartOptions = { 
-      layout: { 
-        textColor: 'white', 
+    const chartOptions = {
+      layout: {
+        textColor: 'white',
         background: { type: 'solid', color: '#0f172b' }
-      } 
+      }
     }
 
     chart = LightweightCharts.createChart(chartContainer.value, chartOptions)
 
-    candlestickSeries = chart.addSeries(LightweightCharts.CandlestickSeries, { 
-      upColor: '#00DC82', 
-      downColor: '#ef5350', 
-      borderVisible: false, 
-      wickUpColor: '#26a69a', 
-      wickDownColor: '#ef5350' 
+    candlestickSeries = chart.addSeries(LightweightCharts.CandlestickSeries, {
+      borderVisible: false,
+      wickUpColor: '#26a69a',
+      upColor: '#00DC82',
+      wickDownColor: '#ef5350',
+      downColor: '#ef5350'
     })
 
     // Fetch data on mount if tableName is already set
@@ -56,7 +58,7 @@ async function fetchChartData() {
 
   try {
     const encodedTableName = encodeURIComponent(currentTableName)
-    
+
     console.log(`Fetching data for table: ${encodedTableName}`)
 
     const response = await fetch(`/api/data?table=${encodedTableName}`)

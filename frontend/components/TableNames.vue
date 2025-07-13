@@ -1,21 +1,12 @@
 <template>
   <UCard>
-    <template #header>
-      <h2 class="text-xl font-semibold">Database Tables</h2>
-    </template>
 
     <div v-if="pending" class="flex items-center justify-center py-4">
       <UIcon name="i-heroicons-arrow-path" class="animate-spin mr-2" />
       <span>Loading tables...</span>
     </div>
 
-    <UAlert
-      v-else-if="error"
-      icon="i-heroicons-exclamation-triangle"
-      color="red"
-      variant="soft"
-      :title="error"
-    />
+    <UAlert v-else-if="error" icon="i-heroicons-exclamation-triangle" color="red" variant="soft" :title="error" />
 
     <div v-else-if="!tableNames.length" class="text-center py-4 text-gray-500">
       <UIcon name="i-heroicons-table-cells" class="text-3xl mb-2" />
@@ -23,35 +14,20 @@
     </div>
 
     <div v-else>
-      <UBadge variant="soft" class="mb-3">
-        {{ tableNames.length }} table{{ tableNames.length !== 1 ? 's' : '' }} found
-      </UBadge>
-      <!-- Button for selecting a table to display -->
-      <div class="max-h-64 overflow-y-auto space-y-2 p-4 border rounded">
-        <UButton
-          v-for="item in tableNamesStore.tableNameList.map(name => ({ label: name, id: name }))"
-          :key="item.id"
-          :color="selectedTableStore.selectedTable === item.id ? 'primary' : 'gray'"
-          variant="subtle"
-          class="w-full"
-          @click="selectedTableStore.setSelectedTable(item.id)"
-        >
-          {{ item.label }}
-        </UButton>
+      <div class="flex items-center gap-4 mb-3">
+        <UButton variant="outline" icon="i-heroicons-arrow-path" @click="refresh" :loading="pending" size="sm" />
+        <USelectMenu v-model="selectedTableStore.selectedTable" :items="tableNamesStore.tableNameList" class="w-48" />
+        <UBadge variant="soft">
+          {{ tableNames.length }}
+        </UBadge>
+        <UPopover>
+          <UButton label="Add CSV" color="primary" variant="subtle" />
+          <template #content>
+            <CsvUploader />
+          </template>
+        </UPopover>
       </div>
     </div>
-
-    <template #footer>
-      <UButton
-        variant="ghost"
-        icon="i-heroicons-arrow-path"
-        @click="refresh"
-        :loading="pending"
-        size="sm"
-      >
-        Refresh
-      </UButton>
-    </template>
   </UCard>
 </template>
 
@@ -63,9 +39,6 @@ const { data: tableNames, pending, error, refresh } = await useFetch('/api/table
   default: () => [],
   transform: (data) => data || []
 })
-
-console.log(tableNames)         // This is a ref object, not the array
-console.log(tableNames.value)   // This is the array of table names
 
 const tableNamesStore = useTableNamesStore()
 const selectedTableStore = useSelectedTableStore() // <-- use the store

@@ -5,7 +5,7 @@
     </template>
 
     <UForm :state="formState" @submit="uploadCsv" class="space-y-4">
-      <UFormGroup label="Table Name" required>
+      <UFormGroup label="Table Name" required >
         <UInput
           v-model="formState.tableName"
           placeholder="Enter table name"

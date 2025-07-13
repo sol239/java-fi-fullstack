@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-05-15',
   devtools: { enabled: true },
-  css: ['~/assets/css/main.css'],
+  css: ['~/app/assets/css/main.css'],
 
   modules: [
     '@nuxt/content',
@@ -18,5 +18,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     backendBase: process.env.BACKEND_BASE || 'http://localhost:8080'
-  }
+  },
+
+  
 })
