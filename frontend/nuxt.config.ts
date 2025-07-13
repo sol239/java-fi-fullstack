@@ -2,6 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-05-15',
   devtools: { enabled: true },
+  css: ['~/assets/css/main.css'],
 
   modules: [
     '@nuxt/content',
@@ -11,6 +12,11 @@ export default defineNuxtConfig({
     '@nuxt/image',
     '@nuxt/scripts',
     '@nuxt/test-utils',
-    '@nuxt/ui'
-  ]
+    '@nuxt/ui',
+    '@pinia/nuxt'
+  ],
+
+  runtimeConfig: {
+    backendBase: process.env.BACKEND_BASE || 'http://localhost:8080'
+  }
 })
