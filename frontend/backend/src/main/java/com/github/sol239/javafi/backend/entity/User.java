@@ -24,5 +24,5 @@ public class User {
     private boolean enabled = true;
 
     @Column(nullable = false)
-    private String role; // e.g., "USER", "ADMIN"
+    private String roles; // e.g., "USER", "ADMIN"
 }
