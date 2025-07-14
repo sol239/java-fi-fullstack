@@ -18,6 +18,7 @@ public class BackendApplication {
 		return args -> {
 			try {
 				// Můžete zde volat metody dbHandler, např. dbHandler.isConnected();
+				System.out.println("Connected");
 			} catch (Exception e) {
 				System.out.println("Error connecting to the database: " + e.getMessage());
 			}

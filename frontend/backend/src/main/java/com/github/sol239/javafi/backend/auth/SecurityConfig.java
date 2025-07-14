@@ -36,12 +36,25 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors() // povolí CORS podle WebConfig
+                .and()
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/login", "/api/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .userDetailsService(userDetailsService)
                 .formLogin(form -> form
-                        .loginPage("/login")
+                        .loginProcessingUrl("/login")
+                        .successHandler((req, res, auth) -> {
+                            res.setStatus(200);
+                            res.setContentType("application/json");
+                            res.getWriter().write("{\"status\":\"ok\"}");
+                        })
+                        .failureHandler((req, res, ex) -> {
+                            res.setStatus(401);
+                            res.setContentType("application/json");
+                            res.getWriter().write("{\"error\":\"login failed\"}");
+                        })
                         .permitAll()
                 )
                 .httpBasic(basic -> {})
