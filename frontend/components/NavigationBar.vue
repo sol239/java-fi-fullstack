@@ -21,11 +21,16 @@ const navItems: NavigationMenuItem[] = [
     to: '/demo',
     data_target: 'demo',
   },
-];
+  {
+    label: 'Admin',
+    icon: 'i-heroicons-wrench-screwdriver',
+    to: '/admin',
+    data_target: 'admin',
+  },];
 
 </script>
 
 
 <template>
-    <UNavigationMenu :items="navItems" class="w-full justify-end" />
+  <UNavigationMenu :items="navItems" class="w-full justify-end" />
 </template>

@@ -63,7 +63,7 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
 
 
 <template>
-    <UForm :validate="validate" :state="state" @submit="onSubmit">
+    <UForm :validate="validate" :state="state" @submit="onSubmit" class="flex flex-col gap-4">
         <UFormField label="Username" name="username">
             <UInput v-model="state.username" />
         </UFormField>
@@ -76,5 +76,4 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
             Submit
         </UButton>
     </UForm>
-
 </template>
