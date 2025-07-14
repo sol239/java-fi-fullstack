@@ -1,9 +1,6 @@
 <template>
   <!-- TODO: Fix height - it has to be automatic -->
-  <UCard>
-    <TableNames />
     <div ref="chartContainer" style="width: auto; height: 600px; margin-top: 20px;"></div>
-  </UCard>
 </template>
 
 <script setup>

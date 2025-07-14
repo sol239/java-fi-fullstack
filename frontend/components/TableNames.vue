@@ -1,5 +1,4 @@
 <template>
-  <UCard>
 
     <div v-if="pending" class="flex items-center justify-center py-4">
       <UIcon name="i-heroicons-arrow-path" class="animate-spin mr-2" />
@@ -14,21 +13,14 @@
     </div>
 
     <div v-else>
-      <div class="flex items-center gap-4 mb-3">
+      <div class="flex items-center gap-4">
         <UButton variant="outline" icon="i-heroicons-arrow-path" @click="refresh" :loading="pending" size="sm" />
         <USelectMenu v-model="selectedTableStore.selectedTable" :items="tableNamesStore.tableNameList" class="w-48" />
         <UBadge variant="soft">
           {{ tableNames.length }}
         </UBadge>
-        <UPopover>
-          <UButton label="Add CSV" color="primary" variant="subtle" />
-          <template #content>
-            <CsvUploader />
-          </template>
-        </UPopover>
       </div>
     </div>
-  </UCard>
 </template>
 
 <script setup>

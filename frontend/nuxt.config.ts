@@ -17,8 +17,10 @@ export default defineNuxtConfig({
   ],
 
   runtimeConfig: {
-    backendBase: process.env.BACKEND_BASE || 'http://localhost:8080'
-  },
+    public: {
+      backendBase: process.env.BACKEND_BASE || 'http://localhost:8080'
+    }
+  }
 
   
 })

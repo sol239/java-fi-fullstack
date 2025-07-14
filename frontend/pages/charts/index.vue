@@ -4,9 +4,24 @@
       <div style="min-width:350px;max-width:400px;flex:1;">
         <BackTestingForm />
       </div>
+
       <div style="min-width:700px;flex:2;">
-        <TableView />
+        <UCard>
+          <div class="flex items-center gap-4 mb-3">
+            <TableNames />
+            <UPopover>
+              <UButton label="Add CSV" color="primary" variant="subtle" />
+              <template #content>
+                <CsvUploader />
+              </template>
+            </UPopover>
+          </div>
+          <TableView />
+        </UCard>
       </div>
+
+
+
     </div>
   </div>
 </template>
