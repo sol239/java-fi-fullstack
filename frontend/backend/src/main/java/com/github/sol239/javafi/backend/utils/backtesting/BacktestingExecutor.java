@@ -6,6 +6,8 @@ package com.github.sol239.javafi.backend.utils.backtesting;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.sol239.javafi.backend.utils.DataObject;
 import com.github.sol239.javafi.backend.utils.database.DBHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +17,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+@Component
 public class BacktestingExecutor {
 
     /**
@@ -38,11 +41,10 @@ public class BacktestingExecutor {
 
     public List<Strategy> strategies;
 
-    public BacktestingExecutor() {
-
+    @Autowired
+    public BacktestingExecutor(DBHandler dbHandler) {
         this.strategies = new ArrayList<>();
-
-        this.db = new DBHandler();
+        this.db = dbHandler;
         this.db.setFetchSize(1000);
     }
 

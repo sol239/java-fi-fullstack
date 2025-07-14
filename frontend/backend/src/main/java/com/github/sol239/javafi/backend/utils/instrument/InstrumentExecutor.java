@@ -1,6 +1,8 @@
 package com.github.sol239.javafi.backend.utils.instrument;
 
 import com.github.sol239.javafi.backend.utils.database.DBHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,18 +11,25 @@ import java.util.*;
 /**
  * This class executes instruments on a table.
  */
+@Component
 public class InstrumentExecutor {
+
+    private static DBHandler staticDbHandler;
 
     /**
      * The available instruments.
      */
     JavaInstrument[] availableInstruments;
 
-    public InstrumentExecutor() {
+    @Autowired
+    public InstrumentExecutor(DBHandler dbHandler) {
         ServiceLoader<JavaInstrument> loader = ServiceLoader.load(JavaInstrument.class);
-
-        // loading all available instruments using ServiceLoader
         this.availableInstruments = loader.stream().map(ServiceLoader.Provider::get).toArray(JavaInstrument[]::new);
+        InstrumentExecutor.staticDbHandler = dbHandler;
+    }
+
+    public static void setDbHandler(DBHandler dbHandler) {
+        InstrumentExecutor.staticDbHandler = dbHandler;
     }
 
     /**
@@ -68,10 +77,7 @@ public class InstrumentExecutor {
         List<Double[]> stash = new ArrayList<>();
 
         // GENERAL
-        DBHandler dbHandler = new DBHandler();
-
-        // GENERAL
-        ResultSet rs = dbHandler.getResultSet("SELECT * FROM " + tableName + " ORDER BY id ASC");
+        ResultSet rs = staticDbHandler.getResultSet("SELECT * FROM " + tableName + " ORDER BY id ASC");
 
         // GENERAL
         // Chceme naplnit List columnValues:
@@ -159,12 +165,15 @@ public class InstrumentExecutor {
         columnNames.add("id");
         List<JavaInstrument> _instruments = new ArrayList<>();
 
-        InstrumentExecutor instrumentExecutor = new InstrumentExecutor();
+        // Získání dostupných instrumentů přes ServiceLoader (staticky)
+        JavaInstrument[] availableInstruments = ServiceLoader.load(JavaInstrument.class)
+                .stream().map(ServiceLoader.Provider::get).toArray(JavaInstrument[]::new);
+
         for (Map.Entry<String, Double[]> entry : instruments.entrySet()) {
             Double[] params = entry.getValue();
             String instrumentName = entry.getKey();
 
-            for (JavaInstrument instrument : instrumentExecutor.getAvailableInstruments()) {
+            for (JavaInstrument instrument : availableInstruments) {
                 if (instrumentName.equals(instrument.getName())) {
                     columnNames.addAll(Arrays.asList(instrument.getColumnNames()));
                     _instruments.add(instrument);
@@ -173,8 +182,7 @@ public class InstrumentExecutor {
         }
 
         String names = String.join(", ", columnNames);
-        DBHandler dbHandler = new DBHandler();
-        ResultSet rs = dbHandler.getResultSet("SELECT " + names + " FROM " + tableName + " ORDER BY id ASC");
+        ResultSet rs = staticDbHandler.getResultSet("SELECT " + names + " FROM " + tableName + " ORDER BY id ASC");
 
 
         // instrument name (rsi) : InstrumentHelper ( Map : string column name, List<Double> values)
@@ -228,7 +236,7 @@ public class InstrumentExecutor {
         results.forEach((name, records) -> {System.out.println(name);});
 
         // FAST DB UPDATE
-        dbHandler.insertColumnsBatch(tableName, results);
+        staticDbHandler.insertColumnsBatch(tableName, results);
 
         long t3 = System.currentTimeMillis();
 

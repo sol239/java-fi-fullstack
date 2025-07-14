@@ -14,10 +14,10 @@ public class BackendApplication {
 	}
 
 	@Bean
-	CommandLineRunner init() {
+	CommandLineRunner init(DBHandler dbHandler) {
 		return args -> {
 			try {
-				DBHandler db = new DBHandler();
+				// Můžete zde volat metody dbHandler, např. dbHandler.isConnected();
 			} catch (Exception e) {
 				System.out.println("Error connecting to the database: " + e.getMessage());
 			}
