@@ -32,6 +32,8 @@ public class CsvUploadController {
             return ResponseEntity.badRequest().body("FAIL - File is empty.");
         }
 
+        System.out.println("Soubor " + file.getOriginalFilename() + " byl úspěšně přijat na server.");
+
         try (InputStream is = file.getInputStream()) {
             csvService.insertCsvData(tableName, is);
             return ResponseEntity.ok("SUCCESS - Data inserted into table: " + tableName);

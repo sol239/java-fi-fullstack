@@ -1,6 +1,7 @@
 package com.github.sol239.javafi.backend;
 
 import com.github.sol239.javafi.backend.utils.database.DBHandler;
+import com.github.sol239.javafi.backend.utils.instrument.InstrumentExecutor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,11 +15,12 @@ public class BackendApplication {
 	}
 
 	@Bean
-	CommandLineRunner init(DBHandler dbHandler) {
+	CommandLineRunner init(DBHandler dbHandler, InstrumentExecutor instrumentExecutor) {
 		return args -> {
 			try {
-				// Můžete zde volat metody dbHandler, např. dbHandler.isConnected();
 				System.out.println("Connected");
+				int count = instrumentExecutor.getInstrumentCount();
+				System.out.println("Počet instrumentů: " + count);
 			} catch (Exception e) {
 				System.out.println("Error connecting to the database: " + e.getMessage());
 			}

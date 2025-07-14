@@ -1,5 +1,6 @@
 package com.github.sol239.javafi.backend.utils.database;
 
+import com.github.sol239.javafi.backend.controllers.ChartDataController;
 import com.github.sol239.javafi.backend.utils.DataObject;
 import com.github.sol239.javafi.backend.utils.instrument.IdValueRecord;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.sql.DataSource;
 import java.io.*;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Component
@@ -112,6 +114,127 @@ public class DBHandler {
         }
     }
 
+    public ResultSet getDataFromTo(String tableName, String from, String to) {
+        String query = "SELECT * FROM " + tableName + " WHERE date >= '" + from + "' AND date <= '" + to + "';";
+        try {
+            Connection conn = dataSource.getConnection();
+            return conn.createStatement().executeQuery(query);
+        } catch (SQLException e) {
+            System.out.println("Error executing query: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public ResultSet getDataAfter(String tableName, String afterDate, int numberOfRows) {
+        String query = "SELECT * FROM " + tableName + " WHERE date >= '" + afterDate + "' LIMIT " + numberOfRows + ";";
+        try {
+            Connection conn = dataSource.getConnection();
+            return conn.createStatement().executeQuery(query);
+        } catch (SQLException e) {
+            System.out.println("Error executing query: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public ResultSet getDataBefore(String tableName, String beforeDate, int numberOfRows) {
+        String query = "SELECT * FROM " + tableName + " WHERE date <= '" + beforeDate + "' ORDER BY date DESC LIMIT " + numberOfRows + ";";
+        try {
+            Connection conn = dataSource.getConnection();
+            return conn.createStatement().executeQuery(query);
+        } catch (SQLException e) {
+            System.out.println("Error executing query: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public ResultSet getFirstNRows(String tableName, int numberOfRows) {
+        String query = "SELECT * FROM " + tableName + " ORDER BY TIMESTAMP ASC LIMIT " + numberOfRows + ";";
+        try {
+            Connection conn = dataSource.getConnection();
+            return conn.createStatement().executeQuery(query);
+        } catch (SQLException e) {
+            System.out.println("Error executing query: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public ResultSet getLastNRows(String tableName, int numberOfRows) {
+        String query = "SELECT * FROM " + tableName + " ORDER BY TIMESTAMP DESC LIMIT " + numberOfRows + ";";
+        try {
+            Connection conn = dataSource.getConnection();
+            return conn.createStatement().executeQuery(query);
+        } catch (SQLException e) {
+            System.out.println("Error executing query: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public List<ChartDataController.ChartDTO> getDataBeforeAsList(String tableName, String beforeDate, int numberOfRows) {
+        String query = "SELECT * FROM " + tableName + " WHERE date <= '" + beforeDate + "' ORDER BY date DESC LIMIT " + numberOfRows + ";";
+        List<ChartDataController.ChartDTO> result = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                long timestamp = rs.getLong("timestamp") / 1000;
+                double open = rs.getDouble("open");
+                double high = rs.getDouble("high");
+                double low = rs.getDouble("low");
+                double close = rs.getDouble("close");
+                double volume = rs.getDouble("volume");
+                LocalDateTime date = rs.getObject("date", LocalDateTime.class);
+                result.add(new ChartDataController.ChartDTO(timestamp, open, high, low, close, volume, date));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error executing query: " + e.getMessage());
+        }
+        return result;
+    }
+
+    public List<ChartDataController.ChartDTO> getFirstNRowsAsList(String tableName, int numberOfRows) {
+        String query = "SELECT * FROM " + tableName + " ORDER BY TIMESTAMP ASC LIMIT " + numberOfRows + ";";
+        List<ChartDataController.ChartDTO> result = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                long timestamp = rs.getLong("timestamp") / 1000;
+                double open = rs.getDouble("open");
+                double high = rs.getDouble("high");
+                double low = rs.getDouble("low");
+                double close = rs.getDouble("close");
+                double volume = rs.getDouble("volume");
+                LocalDateTime date = rs.getObject("date", LocalDateTime.class);
+                result.add(new ChartDataController.ChartDTO(timestamp, open, high, low, close, volume, date));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error executing query: " + e.getMessage());
+        }
+        return result;
+    }
+
+    public List<ChartDataController.ChartDTO> getLastNRowsAsList(String tableName, int numberOfRows) {
+        String query = "SELECT * FROM " + tableName + " ORDER BY TIMESTAMP DESC LIMIT " + numberOfRows + ";";
+        List<ChartDataController.ChartDTO> result = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                long timestamp = rs.getLong("timestamp") / 1000;
+                double open = rs.getDouble("open");
+                double high = rs.getDouble("high");
+                double low = rs.getDouble("low");
+                double close = rs.getDouble("close");
+                double volume = rs.getDouble("volume");
+                LocalDateTime date = rs.getObject("date", LocalDateTime.class);
+                result.add(new ChartDataController.ChartDTO(timestamp, open, high, low, close, volume, date));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error executing query: " + e.getMessage());
+        }
+        return result;
+    }
+
     public void setFetchSize(int size) {
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
@@ -146,6 +269,7 @@ public class DBHandler {
             List<String> dbColumns = Arrays.asList("timestamp", "open", "high", "low", "close", "volume", "date");
 
             String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableName + " ("
+                    + "id SERIAL PRIMARY KEY,"
                     + "timestamp BIGINT,"
                     + "open DOUBLE,"
                     + "high DOUBLE,"
