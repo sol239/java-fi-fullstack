@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import type { TabsItem } from '@nuxt/ui'
 import { ref } from 'vue'
+import type { FormSubmitEvent } from '@nuxt/ui'
+import { useSelectedTableStore } from '#imports'
 
+const selectedTableStore = useSelectedTableStore()
+const tableName = selectedTableStore.selectedTable
 const items = ref<TabsItem[]>([
     { label: 'Setup' },
     { label: 'Strategy' }
 ])
 
 const selectedTab = ref('0') // <-- use index
+
+// TODO: Validate the form data
 
 const form = ref({
     // Setup fields
@@ -28,9 +34,38 @@ const form = ref({
     takeProfitEnabled: true
 })
 
-function submitForm() {
-    // handle form submission
-    console.log(form.value)
+const config = useRuntimeConfig()
+const backendBase = config.public.backendBase
+const url = `${backendBase}/api/backtest/run`
+
+async function onSubmit(event: FormSubmitEvent<typeof form>) {
+  console.log('Post URL:', url)
+
+  try {
+    const res = await $fetch(url, {
+      method: 'POST',
+      body: new URLSearchParams({
+        tableName: tableName,
+        balance: form.value.balance.toString(),
+        leverage: form.value.leverage.toString(),
+        fee: form.value.fee.toString(),
+        takeProfit: form.value.takeProfit.toString(),
+        stopLoss: form.value.stopLoss.toString(),
+        amount: form.value.amount.toString(),
+        maxTrades: form.value.maxTrades.toString(),
+        delaySeconds: form.value.delaySeconds.toString(),
+        dateRestriction: form.value.dateRestriction,
+        tradeLifeSpanSeconds: form.value.tradeLifeSpanSeconds.toString(),
+        openClause: form.value.openClause,
+        closeClause: form.value.closeClause,
+        stopLossEnabled: form.value.stopLossEnabled ? 'true' : 'false',
+        takeProfitEnabled: form.value.takeProfitEnabled ? 'true' : 'false'
+      }),
+      credentials: 'include'
+    })
+  } catch (err: any) {
+    console.error('Login error:', err)
+  }
 }
 
 // console.log selectedTab with watch
@@ -43,9 +78,9 @@ watch(selectedTab, (newTab) => {
 
 <template>
     <UCard>
-        <UTabs :items="items" v-model="selectedTab" class="w-full" />
+        <UTabs :items="items" v-model="selectedTab"  class="w-full" />
 
-        <UForm :state="form" @submit="submitForm" class="flex flex-col gap-4">
+        <UForm :state="form" @submit="onSubmit" class="flex flex-col gap-4">
             <template v-if="selectedTab == 0">
                 <div>
                     <label class="block mb-1 font-medium"

@@ -15,6 +15,7 @@
                 <CsvUploader />
               </template>
             </UPopover>
+            <InstrumentExecutorForm />
           </div>
           <TableView />
         </UCard>

@@ -50,6 +50,8 @@ watch(() => selectedTableStore.selectedTable, (newTableName) => {
 
 // Fetch data from backend API and update chart
 async function fetchChartData() {
+
+  /*
   const currentTableName = selectedTableStore.selectedTable
   if (!currentTableName) return
 
@@ -59,15 +61,28 @@ async function fetchChartData() {
     console.log(`Fetching data for table: ${encodedTableName}`)
 
     const response = await fetch(`/api/data?table=${encodedTableName}`)
+
+
     if (!response.ok) {
       throw new Error('Failed to fetch chart data')
     }
     const data = await response.json()
 
-    // data should be [{ open, high, low, close, time }, ...] with time as Unix timestamp
-    candlestickSeries.setData(data)
+    console.log('Fetched data:', data)
+
+    // Transform backend data to chart format
+    const chartData = data.map(item => ({
+      time: item.timestamp, // already in seconds
+      open: item.open,
+      high: item.high,
+      low: item.low,
+      close: item.close
+    })).sort((a, b) => a.time - b.time) // Sort by timestamp ascending
+
+    candlestickSeries.setData(chartData)
   } catch (error) {
     console.error(error)
   }
+    */
 }
 </script>

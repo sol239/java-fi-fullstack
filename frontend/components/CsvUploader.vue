@@ -87,6 +87,7 @@ const uploadCsv = async () => {
     const response = await fetch('http://localhost:8080/api/csv/upload', {
       method: 'POST',
       body: formData,
+      credentials: 'include' // <-- add this line
     })
 
     const text = await response.text()

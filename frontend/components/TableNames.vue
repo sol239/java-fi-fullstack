@@ -15,7 +15,7 @@
     <div v-else>
       <div class="flex items-center gap-4">
         <UButton variant="outline" icon="i-heroicons-arrow-path" @click="refresh" :loading="pending" size="sm" />
-        <USelectMenu v-model="selectedTableStore.selectedTable" :items="tableNamesStore.tableNameList" class="w-48" />
+        <USelectMenu v-model="selectedTableStore.selectedTable" :items="reactiveTableNames" class="w-48" />
         <UBadge variant="soft">
           {{ tableNames.length }}
         </UBadge>
@@ -26,6 +26,7 @@
 <script setup>
 import { useTableNamesStore } from '~/stores/tableNames'
 import { useSelectedTableStore } from '~/stores/selectedTable' // <-- import the store
+import { computed } from 'vue'
 
 const { data: tableNames, pending, error, refresh } = await useFetch('/api/tables', {
   default: () => [],
@@ -33,13 +34,17 @@ const { data: tableNames, pending, error, refresh } = await useFetch('/api/table
 })
 
 const tableNamesStore = useTableNamesStore()
-const selectedTableStore = useSelectedTableStore() // <-- use the store
+
+
+
+const reactiveTableNames = computed(() => tableNamesStore.tableNameList)
 
 const tableNamesArray = Array.isArray(tableNames.value)
   ? tableNames.value.map(String)
   : []
 
 tableNamesStore.setTableNames(tableNamesArray)
+const selectedTableStore = useSelectedTableStore() // <-- use the store
 
 // Set first table as default selection if available
 if (tableNamesArray.length && !selectedTableStore.selectedTable) {
