@@ -15,7 +15,7 @@
     <div v-else>
       <div class="flex items-center gap-4">
         <UButton variant="outline" icon="i-heroicons-arrow-path" @click="refresh" :loading="pending" size="sm" />
-        <USelectMenu v-model="selectedTableStore.selectedTable" :items="reactiveTableNames" class="w-48" />
+        <USelectMenu v-model="selectedTable" :items="reactiveTableNames" class="w-48" />
         <UBadge variant="soft">
           {{ tableNames.length }}
         </UBadge>
@@ -27,6 +27,8 @@
 import { useTableNamesStore } from '~/stores/tableNames'
 import { useSelectedTableStore } from '~/stores/selectedTable' // <-- import the store
 import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
+import { watch } from 'vue' // <-- import watch
 
 const { data: tableNames, pending, error, refresh } = await useFetch('/api/tables', {
   default: () => [],
@@ -34,8 +36,8 @@ const { data: tableNames, pending, error, refresh } = await useFetch('/api/table
 })
 
 const tableNamesStore = useTableNamesStore()
-
-
+const selectedTableStore = useSelectedTableStore()
+const { selectedTable } = storeToRefs(selectedTableStore) // <-- make selectedTable reactive
 
 const reactiveTableNames = computed(() => tableNamesStore.tableNameList)
 
@@ -44,11 +46,17 @@ const tableNamesArray = Array.isArray(tableNames.value)
   : []
 
 tableNamesStore.setTableNames(tableNamesArray)
-const selectedTableStore = useSelectedTableStore() // <-- use the store
+
+console.log("Current selected table:", selectedTableStore.selectedTable)
 
 // Set first table as default selection if available
 if (tableNamesArray.length && !selectedTableStore.selectedTable) {
   selectedTableStore.selectedTable = tableNamesArray[0]
 }
+
+// Watch for changes and log
+watch(selectedTable, (newVal) => {
+  console.log("Current selected table:", newVal)
+})
 
 </script>

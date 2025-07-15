@@ -39,17 +39,24 @@ const form = ref({
     takeProfitEnabled: true
 })
 
+const isRunning = ref(false)
+const message = ref('')
+const error = ref('')
+
 const config = useRuntimeConfig()
 const backendBase = config.public.backendBase
 const url = `${backendBase}/api/backtest/run`
 
 async function onSubmit(event: FormSubmitEvent<typeof form>) {
+    message.value = ''
+    error.value = ''
+    isRunning.value = true
     console.log('Post URL:', url)
     console.log('Form data:', form.value)
     console.log('Selected table:', tableName)
 
     try {
-        const { data, error } = await useFetch(url, {
+        const { data, error: fetchError } = await useFetch(url, {
             method: 'POST',
             body: new URLSearchParams({
                 tableName: tableName,
@@ -71,16 +78,19 @@ async function onSubmit(event: FormSubmitEvent<typeof form>) {
             credentials: 'include'
         })
 
-        if (error.value) {
-            throw new Error(error.value.message || 'Backtest failed')
+        if (fetchError.value) {
+            throw new Error(fetchError.value.message || 'Backtest failed')
         }
 
         backtestResultStore.setResult(String(data.value))
+        message.value = 'Backtest completed successfully.'
         console.log('Backtest result (store):', backtestResultStore.backtestResult)
 
-
     } catch (err: any) {
+        error.value = 'Backtest failed: ' + (err?.message || err)
         console.error('Backtest error:', err)
+    } finally {
+        isRunning.value = false
     }
 }
 
@@ -93,7 +103,6 @@ watch(selectedTab, (newTab) => {
 </script>
 
 <template>
-
     <UCollapsible v-model:open="open" class="flex flex-col gap-2">
         <UButton label="Open" color="neutral" variant="subtle" trailing-icon="i-lucide-chevron-down" block />
         <template #content>
@@ -194,12 +203,35 @@ watch(selectedTab, (newTab) => {
                         </div>
                     </template>
                     <div class="flex gap-2 mt-4">
-                        <UButton type="submit" color="primary">Backtest</UButton>
-                        <UButton color="primary" variant="outline">Save</UButton>
+                        <UButton
+                            type="submit"
+                            color="primary"
+                            :loading="isRunning"
+                            :disabled="isRunning"
+                        >
+                            {{ isRunning ? "Running..." : "Backtest" }}
+                        </UButton>
+                        <UButton color="primary" variant="outline" :disabled="isRunning">Save</UButton>
 
                         <!-- TODO: Implement selecting from saved setups/strategies -->
 
                         <!-- TODO: Implement saving -> with json probably -->
+                    </div>
+                    <div v-if="message || error" class="mt-4">
+                        <UAlert
+                            v-if="message"
+                            icon="i-heroicons-check-circle"
+                            color="green"
+                            variant="soft"
+                            :title="message"
+                        />
+                        <UAlert
+                            v-if="error"
+                            icon="i-heroicons-exclamation-triangle"
+                            color="red"
+                            variant="soft"
+                            :title="error"
+                        />
                     </div>
                 </UForm>
             </UCard>

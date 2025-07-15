@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 export const useSelectedTableStore = defineStore('selectedTable', {
   state: () => ({
-    selectedTable: ''
+    selectedTable: ref<string>(''),
   }),
   actions: {
     setSelectedTable(tableName: string) {
