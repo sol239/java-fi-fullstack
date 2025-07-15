@@ -113,6 +113,10 @@ public class BacktestingExecutor {
         //System.out.println("Strategy columns created.");
     }
 
+    public void clearStrategies() {
+        this.strategies.clear();
+    }
+
     public void createStrategiesColumns(String tableName) {
         for (Strategy strategy : strategies) {
             this.createStrategyColumns(strategy, tableName);
@@ -154,6 +158,10 @@ public class BacktestingExecutor {
 
     public DataObject run(String tableName, long tradeLifeSpanSeconds, boolean takeProfit, boolean stopLoss, String saveResultPath, String dateRestriction) {
 
+        this.openedTrades.clear();
+        this.winningTrades.clear();
+        this.loosingTrades.clear();
+
         long t1 = System.currentTimeMillis();
 
         List<String> lines;
@@ -164,6 +172,15 @@ public class BacktestingExecutor {
         } catch (Exception e) {
             return new DataObject(400, "backtesting", "Error getting the data from the database");
         }
+
+
+        // Print used strategies
+        System.out.println("****************************************");
+        System.out.println("Running backtest with strategies[" + strategies.size() + "]:");
+        for (Strategy strategy : strategies) {
+            System.out.println(" - " + strategy.openClause + " - " + strategy.closeClause);
+        }
+        System.out.println("****************************************");
 
 
 

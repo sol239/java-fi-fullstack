@@ -1,5 +1,6 @@
 package com.github.sol239.javafi.backend.services;
 
+import com.github.sol239.javafi.backend.utils.DataObject;
 import com.github.sol239.javafi.backend.utils.backtesting.BacktestingExecutor;
 import com.github.sol239.javafi.backend.utils.backtesting.Setup;
 import com.github.sol239.javafi.backend.utils.backtesting.Strategy;
@@ -13,7 +14,7 @@ public class BacktestService {
         this.backtestingExecutor = backtestingExecutor;
     }
 
-    public void runBackTest(
+    public String runBackTest(
             String tableName,
             String balance,
             String leverage,
@@ -34,12 +35,14 @@ public class BacktestService {
         Setup setup = new Setup(Double.parseDouble(balance), Double.parseDouble(leverage), Double.parseDouble(fee), Double.parseDouble(takeProfit), Double.parseDouble(stopLoss), Double.parseDouble(amount), riskReward, Integer.parseInt(maxTrades), Integer.parseInt(delaySeconds), dateRestriction, Integer.parseInt(tradeLifeSpanSeconds));
         Strategy strategy = new Strategy(openClause, closeClause, setup);
 
+        backtestingExecutor.clearStrategies();
+
         backtestingExecutor.addStrategy(strategy);
         backtestingExecutor.createStrategiesColumns(tableName);
 
         backtestingExecutor.updateStrategiesColumns(tableName);   // TODO: does not have to be executed each time
-        backtestingExecutor.run(tableName, setup.tradeLifeSpanSeconds, strategy.takeProfit, strategy.stopLoss, "C:/Users/David/Desktop/result.json", setup.dateRestriction);
-
+        DataObject result =  backtestingExecutor.run(tableName, setup.tradeLifeSpanSeconds, strategy.takeProfit, strategy.stopLoss, "C:/Users/David/Desktop/result.json", setup.dateRestriction);
+        return result.getCmd();
     }
 
 }

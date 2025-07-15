@@ -1,7 +1,6 @@
 package com.github.sol239.javafi.backend.controllers;
 
 import com.github.sol239.javafi.backend.services.BacktestService;
-import com.github.sol239.javafi.backend.services.TableService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,7 +18,7 @@ public class BacktestController {
 
 
     @PostMapping("run")
-    public void runBacktest(
+    public String runBacktest(
             @RequestParam String tableName,
             @RequestParam String balance,
             @RequestParam String leverage,
@@ -37,7 +36,7 @@ public class BacktestController {
             @RequestParam String takeProfitEnabled
     ) {
         System.out.println("Running backtest.");
-        backtestService.runBackTest(
+        String result = backtestService.runBackTest(
                 tableName, // This should be replaced with the actual table name if needed
                 balance,
                 leverage,
@@ -54,7 +53,9 @@ public class BacktestController {
                 stopLossEnabled,
                 takeProfitEnabled
         );;
-        System.out.println("Backtest run completed.");
+        System.out.println("Backtest completed: " + result);
+
+        return result;
 
     }
 

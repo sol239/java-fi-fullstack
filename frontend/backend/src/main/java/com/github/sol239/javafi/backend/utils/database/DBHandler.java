@@ -104,70 +104,112 @@ public class DBHandler {
         }
     }
 
+    // DEPRECATED: Use getResultSetAsList instead to avoid connection leaks
+    @Deprecated
     public ResultSet getResultSet(String query) {
+        System.err.println("WARNING: getResultSet is deprecated and causes connection leaks. Use getResultSetAsList instead.");
         try {
             Connection conn = dataSource.getConnection();
             return conn.createStatement().executeQuery(query);
         } catch (SQLException e) {
-            System.out.println("Error executing query: " + e.getMessage());
+            System.out.println("Error creating cached result set: " + e.getMessage());
             return null;
         }
     }
 
+    // Safe alternative that returns data as List and properly closes connections
+    public List<Map<String, Object>> getResultSetAsList(String query) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            ResultSetMetaData metaData = rs.getMetaData();
+            int columnCount = metaData.getColumnCount();
+
+            while (rs.next()) {
+                Map<String, Object> row = new HashMap<>();
+                for (int i = 1; i <= columnCount; i++) {
+                    row.put(metaData.getColumnName(i), rs.getObject(i));
+                }
+                result.add(row);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error executing query: " + e.getMessage());
+        }
+        return result;
+    }
+
+    // DEPRECATED: Use getDataFromToAsList instead
+    @Deprecated
     public ResultSet getDataFromTo(String tableName, String from, String to) {
         String query = "SELECT * FROM " + tableName + " WHERE date >= '" + from + "' AND date <= '" + to + "';";
         try {
             Connection conn = dataSource.getConnection();
             return conn.createStatement().executeQuery(query);
         } catch (SQLException e) {
-            System.out.println("Error executing query: " + e.getMessage());
+            System.out.println("Error creating cached result set: " + e.getMessage());
             return null;
         }
     }
 
+    public List<ChartDataController.ChartDTO> getDataFromToAsList(String tableName, String from, String to) {
+        String query = "SELECT * FROM " + tableName + " WHERE date >= '" + from + "' AND date <= '" + to + "';";
+        List<ChartDataController.ChartDTO> result = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                long timestamp = rs.getLong("timestamp") / 1000;
+                double open = rs.getDouble("open");
+                double high = rs.getDouble("high");
+                double low = rs.getDouble("low");
+                double close = rs.getDouble("close");
+                double volume = rs.getDouble("volume");
+                LocalDateTime date = rs.getObject("date", LocalDateTime.class);
+                result.add(new ChartDataController.ChartDTO(timestamp, open, high, low, close, volume, date));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error executing query: " + e.getMessage());
+        }
+        return result;
+    }
+
+    // DEPRECATED: Use getDataAfterAsList instead
+    @Deprecated
     public ResultSet getDataAfter(String tableName, String afterDate, int numberOfRows) {
         String query = "SELECT * FROM " + tableName + " WHERE date >= '" + afterDate + "' LIMIT " + numberOfRows + ";";
         try {
             Connection conn = dataSource.getConnection();
             return conn.createStatement().executeQuery(query);
         } catch (SQLException e) {
-            System.out.println("Error executing query: " + e.getMessage());
+            System.out.println("Error creating cached result set: " + e.getMessage());
             return null;
         }
     }
 
-    public ResultSet getDataBefore(String tableName, String beforeDate, int numberOfRows) {
-        String query = "SELECT * FROM " + tableName + " WHERE date <= '" + beforeDate + "' ORDER BY date DESC LIMIT " + numberOfRows + ";";
-        try {
-            Connection conn = dataSource.getConnection();
-            return conn.createStatement().executeQuery(query);
+    public List<ChartDataController.ChartDTO> getDataAfterAsList(String tableName, String afterDate, int numberOfRows) {
+        String query = "SELECT * FROM " + tableName + " WHERE date >= '" + afterDate + "' LIMIT " + numberOfRows + ";";
+        List<ChartDataController.ChartDTO> result = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                long timestamp = rs.getLong("timestamp") / 1000;
+                double open = rs.getDouble("open");
+                double high = rs.getDouble("high");
+                double low = rs.getDouble("low");
+                double close = rs.getDouble("close");
+                double volume = rs.getDouble("volume");
+                LocalDateTime date = rs.getObject("date", LocalDateTime.class);
+                result.add(new ChartDataController.ChartDTO(timestamp, open, high, low, close, volume, date));
+            }
         } catch (SQLException e) {
             System.out.println("Error executing query: " + e.getMessage());
-            return null;
         }
+        return result;
     }
 
-    public ResultSet getFirstNRows(String tableName, int numberOfRows) {
-        String query = "SELECT * FROM " + tableName + " ORDER BY TIMESTAMP ASC LIMIT " + numberOfRows + ";";
-        try {
-            Connection conn = dataSource.getConnection();
-            return conn.createStatement().executeQuery(query);
-        } catch (SQLException e) {
-            System.out.println("Error executing query: " + e.getMessage());
-            return null;
-        }
-    }
-
-    public ResultSet getLastNRows(String tableName, int numberOfRows) {
-        String query = "SELECT * FROM " + tableName + " ORDER BY TIMESTAMP DESC LIMIT " + numberOfRows + ";";
-        try {
-            Connection conn = dataSource.getConnection();
-            return conn.createStatement().executeQuery(query);
-        } catch (SQLException e) {
-            System.out.println("Error executing query: " + e.getMessage());
-            return null;
-        }
-    }
 
     public List<ChartDataController.ChartDTO> getDataBeforeAsList(String tableName, String beforeDate, int numberOfRows) {
         String query = "SELECT * FROM " + tableName + " WHERE date <= '" + beforeDate + "' ORDER BY date DESC LIMIT " + numberOfRows + ";";
@@ -211,6 +253,20 @@ public class DBHandler {
             System.out.println("Error executing query: " + e.getMessage());
         }
         return result;
+    }
+
+    // DEPRECATED: Use getLastNRowsAsList instead
+    @Deprecated
+    public ResultSet getLastNRows(String tableName, int numberOfRows) {
+        System.err.println("WARNING: getLastNRows is deprecated and causes connection leaks. Use getLastNRowsAsList instead.");
+        String query = "SELECT * FROM " + tableName + " ORDER BY TIMESTAMP DESC LIMIT " + numberOfRows + ";";
+        try {
+            Connection conn = dataSource.getConnection();
+            return conn.createStatement().executeQuery(query);
+        } catch (SQLException e) {
+            System.out.println("Error executing query: " + e.getMessage());
+            return null;
+        }
     }
 
     public List<ChartDataController.ChartDTO> getLastNRowsAsList(String tableName, int numberOfRows) {
@@ -417,3 +473,4 @@ public class DBHandler {
         }
     }
 }
+
