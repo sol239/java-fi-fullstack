@@ -2,7 +2,18 @@
   <div>
     <div class="flex gap-6 mt-4 overflow-x-auto">
       <div style="min-width:350px;max-width:400px;flex:1;">
+        <!-- 
+        <UPopover>
+          <UButton label="Edit setup/strategy" variant="outline" />
+            <template #content>
+              <BackTestingForm />
+            </template>
+</UPopover>
+-->
         <BackTestingForm />
+        <BacktestResult />
+
+
       </div>
 
       <div style="min-width:700px;flex:2;">
