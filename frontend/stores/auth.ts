@@ -13,6 +13,11 @@ export const useAuthStore = defineStore('auth', {
     logout() {
       this.isLoggedIn = false
       this.user = null
+    },
+    reset() {
+      this.isLoggedIn = false
+      this.user = null
     }
   }
 })
+

@@ -8,58 +8,104 @@ import { ref, onMounted, watch } from 'vue'
 import * as LightweightCharts from 'lightweight-charts'
 import { useSelectedTableStore } from '@/stores/selectedTable'
 
+function dedupeAndSortChartData(data) {
+
+
+  console.log("Dedupe and sort chart data:", data);
+
+  // Remove duplicates by time
+  const seen = new Set();
+  const filtered = data.filter(item => {
+    if (seen.has(item.time)) return false;
+    seen.add(item.time);
+    return true;
+  });
+  // Sort ascending by time
+  return filtered.sort((a, b) => a.time - b.time);
+}
 class Datafeed {
   constructor() {
-    this.id1 = null
-    this.id2 = null
-    this.allLoadedData = []
+    this._earliestId = 0;
+    this._data = [];
   }
 
-  setId1(id) {
-    this.id1 = id
+  setEarliestId(earliestId) {
+    this._earliestId = earliestId;
   }
 
-  setId2(id) {
-    this.id2 = id
-  }
-
-  setInitialData(data) {
-    this.allLoadedData = [...data]
-  }
-
-  prependData(data) {
-    this.allLoadedData = [...data, ...this.allLoadedData]
-  }
-
-  getData() {
-    return this.allLoadedData
+  async getBars(numberOfExtraBars) {
+    const historicalData = await functionFetchData(this._earliestId, numberOfExtraBars);
+    this._data = [...historicalData, ...this._data];
+    this._earliestId = historicalData[0].id;
+    return this._data;
   }
 }
 
-const datafeed = new Datafeed()
+class Chart {
+  constructor(container) {
+    this.series = null
+    this.container = container;
+    this.chart = null;
+    this.chartSettings = null;
+    this.datafeed = new Datafeed();
+    this.lastIndex = "0";
+  }
 
-const selectedTableStore = useSelectedTableStore()
-const tableName = selectedTableStore.selectedTable
+  activateInfinity() {
+    this.chart.timeScale().subscribeVisibleLogicalRangeChange(async logicalRange => {
+      // Add null check for logicalRange
+      if (logicalRange && logicalRange.from < 10) {
+        // load more data
+        const numberBarsToLoad = 50 - logicalRange.from;
+        const data = await this.datafeed.getBars(numberBarsToLoad);
 
-const chartContainer = ref(null)
-let chart = null
-let candlestickSeries = null
 
-let allLoadedData = [] // Store all loaded data
-let earliestId = null // Track the earliest loaded ID
+        const chartData =
+          (data || []).map(item => ({
+            id: item.id,
+            time: item.timestamp,
+            open: item.open,
+            high: item.high,
+            low: item.low,
+            close: item.close
+          }))
+          console.log("Data reordered!");
+          chartData = dedupeAndSortChartData(chartData);
 
-onMounted(() => {
-  if (chartContainer.value) {
-    const chartOptions = {
-      layout: {
-        textColor: 'white',
-        background: { type: 'solid', color: '#0f172b' }
+        setTimeout(() => {
+          console.log("SETTING NEW", chartData);
+          this.series.setData(chartData);
+        }, 2000);
       }
-    }
+    });
+  }
 
-    chart = LightweightCharts.createChart(chartContainer.value, chartOptions)
+  setLastIndex(lastIndex) {
+    this.lastIndex = lastIndex;
+  }
 
-    candlestickSeries = chart.addSeries(LightweightCharts.CandlestickSeries, {
+  getLastIndex() {
+    return this.lastIndex;
+  }
+
+  clearLastIndex() {
+    this.lastIndex = "0";
+  }
+
+  clearDatafeed() {
+    this.datafeed = new Datafeed();
+  }
+
+  setDatafeed(datafeed) {
+    this.datafeed = datafeed;
+  }
+
+  setChartSettings(settings) {
+    this.chartSettings = settings;
+  }
+
+  setSeries() {
+    this.series = this.chart.addSeries(LightweightCharts.CandlestickSeries, {
       borderVisible: false,
       wickUpColor: '#26a69a',
       upColor: '#00DC82',
@@ -67,40 +113,57 @@ onMounted(() => {
       downColor: '#ef5350'
     })
 
-    // Fetch data on mount if tableName is already set
-    if (tableName) {
-      fetchChartData()
+  }
+
+
+
+  async setSeriesData(count) {
+    const bars = await this.datafeed.getBars(count);
+    if (this.series) {
+      console.log("Setting series data:", bars);
+      this.series.setData(bars);
+    }
+    else {
+      console.error("Series is not set, cannot set data.");
     }
   }
-})
 
-// Watch for changes in the selected table from the store
-watch(() => selectedTableStore.selectedTable, (newTableName) => {
-  if (newTableName) {
-    fetchChartData()
+  clearSeries() {
+    this.series = null;
   }
-}, { immediate: true })
+
+  clearChart() {
+    this.chart = null;
+  }
 
 
+  createChart() {
+    this.chart = LightweightCharts.createChart(this.container.value, this.chartSettings)
+  }
+
+}
 async function functionFetchData(beforeId, count = 50) {
-  console.log(`Fetching ${count} bars before ID: ${beforeId}`)
+
+  beforeId = Math.ceil(beforeId);
+  count = Math.ceil(count);
+
+  console.log(`Fetching data before ID: ${beforeId}, count: ${count}`);
+
   const currentTableName = selectedTableStore.selectedTable
   const encodedTableName = encodeURIComponent(currentTableName)
-  
   const config = useRuntimeConfig()
   const backendBase = config.public.backendBase || 'http://localhost:8080'
   const url = `${backendBase}/api/betweendata?table=${encodedTableName}&id1=${beforeId - count}&id2=${beforeId}`
-  
-  const { data, error } = await useFetch(url, {
+  console.log(`Fetching data from: ${url}`)
+
+  // Use $fetch instead of useFetch
+  const data = await $fetch(url, {
     credentials: 'include'
   })
-  
-  if (error.value) {
-    console.error('Error fetching data between IDs:', error.value)
-    return []
-  }
-  
-  const chartData = (data.value || []).map(item => ({
+
+  console.log("Fetched data:", data)
+
+  const chartData = (data || []).map(item => ({
     id: item.id,
     time: item.timestamp,
     open: item.open,
@@ -112,23 +175,76 @@ async function functionFetchData(beforeId, count = 50) {
   return chartData
 }
 
-function getFirstAndLastId(chartData) {
-  if (chartData.length > 0) {
-    const id1 = chartData[0].id
-    const id2 = chartData[chartData.length - 1].id
-    console.log("First ID:", id1)
-    console.log("Last ID:", id2)
-    return { id1, id2 }
+const selectedTableStore = useSelectedTableStore()
+const tableName = selectedTableStore.selectedTable
+console.log('Selected table:', tableName)
+
+const chartContainer = ref(null)
+
+const ch = new Chart(chartContainer)
+
+let lastIndex = "0";
+
+async function getTableLastIndex(tableName) {
+  if (tableName) {
+    const encodedTableName = encodeURIComponent(tableName)
+    const config = useRuntimeConfig()
+    const backendBase = config.public.backendBase || 'http://localhost:8080'
+    const res = await fetch(`${backendBase}/api/tables/last?tableName=${encodedTableName}`, {
+      credentials: 'include'
+    })
+    lastIndex = await res.text()
+    return lastIndex;
   } else {
-    console.log('No data available for the selected table.')
-    return { id1: null, id2: null }
+    console.warn('No table selected, skipping last index fetch.')
+    return "0";
   }
 }
 
-// Fetch data from backend API and update chart
+onMounted(async () => {
+  if (chartContainer.value) {
+
+    lastIndex = await getTableLastIndex(tableName)
+    console.log('Last index for table:', lastIndex)
+
+    const chartOptions = {
+      layout: {
+        textColor: 'white',
+        background: { type: 'solid', color: '#0f172b' }
+      }
+    }
+
+    ch.setChartSettings(chartOptions)
+    ch.createChart()
+    ch.setSeries()
+
+    const datafeed = new Datafeed();
+    ch.setDatafeed(datafeed);
+    ch.setLastIndex(lastIndex)
+    ch.datafeed.setEarliestId(Number(lastIndex))
+    ch.setSeriesData(200)
+
+    ch.activateInfinity()
+
+
+
+
+  }
+})
+
+watch(() => selectedTableStore.selectedTable, async (newTableName) => {
+  if (newTableName) {
+    lastIndex = await getTableLastIndex(newTableName)
+    console.log('Last index for new table:', lastIndex)
+    //const chartData = await fetchChartData()
+    //ch.setSeriesData(chartData)
+  }
+}, { immediate: true })
+
+
 async function fetchChartData() {
   const currentTableName = selectedTableStore.selectedTable
-  if (!currentTableName) return
+  if (!currentTableName) return []
 
   try {
     const encodedTableName = encodeURIComponent(currentTableName)
@@ -138,18 +254,13 @@ async function fetchChartData() {
     const backendBase = config.public.backendBase || 'http://localhost:8080'
     const url = `${backendBase}/api/data?table=${encodedTableName}`
 
-    const { data, error } = await useFetch(url, {
+    // Use $fetch for client-side requests
+    const data = await $fetch(url, {
       credentials: 'include'
     })
 
-    if (error.value) {
-      throw new Error('Failed to fetch chart data: ' + error.value.message)
-    }
-
-    console.log('Fetched data:', data.value)
-
     // Transform backend data to chart format
-    const chartData = (data.value || []).map(item => ({
+    const chartData = (data || []).map(item => ({
       id: item.id,
       time: item.timestamp,
       open: item.open,
@@ -158,50 +269,13 @@ async function fetchChartData() {
       close: item.close
     })).sort((a, b) => a.time - b.time)
 
-    // Initialize data management
-    allLoadedData = [...chartData]
-
-    // set Datefeed
-    datafeed.setId1(chartData.length > 0 ? chartData[0].id : null)
-    datafeed.setId2(chartData.length > 0 ? chartData[chartData.length - 1].id : null)
-
-    // Store all loaded data for lazy loading
-    datafeed.setInitialData(chartData)
-
-    earliestId = chartData.length > 0 ? chartData[0].id : null
-
-    candlestickSeries.setData(datafeed.getData())
-
-    // Subscribe to visible logical range changes for lazy loading
-    chart.timeScale().subscribeVisibleLogicalRangeChange(async (logicalRange) => {
-      if (logicalRange.from < 10 && earliestId !== null) {
-        console.log('Loading more historical data...')
-        const numberBarsToLoad = 50 - Math.floor(logicalRange.from)
-        const newData = await functionFetchData(earliestId, numberBarsToLoad)
-        
-        if (newData.length > 0) {
-          // Prepend new data to existing data
-          allLoadedData = [...newData, ...allLoadedData]
-          earliestId = newData[0].id
-          datafeed.setId1(newData[0].id)
-          datafeed.setId2(allLoadedData[allLoadedData.length - 1].id)
-          datafeed.prependData(newData)
-          
-          setTimeout(() => {
-            candlestickSeries.setData(datafeed.getData())
-            console.log('New data prepended:', datafeed.getData())
-          }, 250)
-        }
-      }
-    })
-
-    // Store first and last IDs for reference
-    const { id1: currentId1, id2: currentId2 } = getFirstAndLastId(chartData)
-    id1 = currentId1
-    id2 = currentId2
+    return chartData
 
   } catch (error) {
     console.error(error)
+    return []
   }
 }
+
+
 </script>

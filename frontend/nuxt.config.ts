@@ -1,8 +1,11 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-05-15',
   devtools: { enabled: true },
+  vite: {},
+
   css: ['~/app/assets/css/main.css'],
+  sourcemap: false,
 
   modules: [
     '@nuxt/content',
@@ -22,5 +25,5 @@ export default defineNuxtConfig({
     }
   }
 
-  
+
 })
