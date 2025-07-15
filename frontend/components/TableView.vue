@@ -3,6 +3,7 @@
   <div v-if="selectedView === 'chart'" ref="chartContainer" style="width: auto; height: 600px; margin-top: 20px;"></div>
   <div v-else>
       <UTable :data="data" class="flex-1" />
+
   </div>
 
 
@@ -14,7 +15,7 @@ import * as LightweightCharts from 'lightweight-charts'
 import { useSelectedTableStore } from '@/stores/selectedTable'
 
 
-// table or chart
+// TODO: implement switcher
 const selectedView = ref('chart')
 
 function dedupeAndSortChartData(data) {
@@ -41,6 +42,10 @@ class Datafeed {
     this._data = [];
     // Optionally, initialize the global flag
     window.lastIndex1Reached = false;
+  }
+
+  getData() {
+    return this._data;
   }
 
   removeDuplicates() {
@@ -248,13 +253,15 @@ onMounted(async () => {
     ch.setDatafeed(datafeed);
     ch.setLastIndex(lastIndex)
     ch.datafeed.setEarliestId(Number(lastIndex))
-    ch.setSeriesData(200)
+    await ch.setSeriesData(200) // <-- await here
 
     ch.activateInfinity()
 
+    // Now log the data after it has been fetched
+    const chartData = await ch.datafeed.getBars(200)
+    console.log("Chart data:", chartData)
 
-
-
+    // TODO: implement table view
   }
 })
 
