@@ -183,6 +183,11 @@ public class BacktestingExecutor {
         System.out.println("****************************************");
 
 
+        System.out.println(this.strategies.get(strategies.size() - 1).setup.toString());
+
+        System.out.println("***************************************");
+
+
 
         int skipRows = 1;
         int c = 0;

@@ -85,6 +85,6 @@ public class Strategy {
                 "closeClause = " + closeClause + "\n" +
                 "setup = " + setup.toString() + "\n" +
                 "takeProfit = " + takeProfit + "\n" +
-                "stopLoss = " + stopLoss + "\n";
+                "stopLoss = " + stopLoss;
     }
 }

@@ -140,10 +140,24 @@ public class DBHandler {
         return result;
     }
 
+    public String getLastId(String tableName) {
+        String query = "SELECT id FROM " + tableName + " ORDER BY id DESC LIMIT 1;";
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            if (rs.next()) {
+                return String.valueOf(rs.getLong("id"));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getting last id: " + e.getMessage());
+        }
+        return null;
+    }
+
     // DEPRECATED: Use getDataFromToAsList instead
     @Deprecated
-    public ResultSet getDataFromTo(String tableName, String from, String to) {
-        String query = "SELECT * FROM " + tableName + " WHERE date >= '" + from + "' AND date <= '" + to + "';";
+    public ResultSet getDataFromTo(String tableName, long count, String from, String to) {
+        String query = "SELECT * FROM " + tableName + " WHERE id >= '" + from + "' AND id <= '" + to + "' LIMIT " + count + ";";
         try {
             Connection conn = dataSource.getConnection();
             return conn.createStatement().executeQuery(query);
@@ -160,6 +174,7 @@ public class DBHandler {
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
+                long id = rs.getLong("id");
                 long timestamp = rs.getLong("timestamp") / 1000;
                 double open = rs.getDouble("open");
                 double high = rs.getDouble("high");
@@ -167,7 +182,7 @@ public class DBHandler {
                 double close = rs.getDouble("close");
                 double volume = rs.getDouble("volume");
                 LocalDateTime date = rs.getObject("date", LocalDateTime.class);
-                result.add(new ChartDataController.ChartDTO(timestamp, open, high, low, close, volume, date));
+                result.add(new ChartDataController.ChartDTO(id, timestamp, open, high, low, close, volume, date));
             }
         } catch (SQLException e) {
             System.out.println("Error executing query: " + e.getMessage());
@@ -195,6 +210,7 @@ public class DBHandler {
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
+                long id = rs.getLong("id");
                 long timestamp = rs.getLong("timestamp") / 1000;
                 double open = rs.getDouble("open");
                 double high = rs.getDouble("high");
@@ -202,7 +218,7 @@ public class DBHandler {
                 double close = rs.getDouble("close");
                 double volume = rs.getDouble("volume");
                 LocalDateTime date = rs.getObject("date", LocalDateTime.class);
-                result.add(new ChartDataController.ChartDTO(timestamp, open, high, low, close, volume, date));
+                result.add(new ChartDataController.ChartDTO(id, timestamp, open, high, low, close, volume, date));
             }
         } catch (SQLException e) {
             System.out.println("Error executing query: " + e.getMessage());
@@ -218,6 +234,7 @@ public class DBHandler {
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
+                long id = rs.getLong("id");
                 long timestamp = rs.getLong("timestamp") / 1000;
                 double open = rs.getDouble("open");
                 double high = rs.getDouble("high");
@@ -225,7 +242,7 @@ public class DBHandler {
                 double close = rs.getDouble("close");
                 double volume = rs.getDouble("volume");
                 LocalDateTime date = rs.getObject("date", LocalDateTime.class);
-                result.add(new ChartDataController.ChartDTO(timestamp, open, high, low, close, volume, date));
+                result.add(new ChartDataController.ChartDTO(id, timestamp, open, high, low, close, volume, date));
             }
         } catch (SQLException e) {
             System.out.println("Error executing query: " + e.getMessage());
@@ -240,6 +257,7 @@ public class DBHandler {
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
+                long id = rs.getLong("id");
                 long timestamp = rs.getLong("timestamp") / 1000;
                 double open = rs.getDouble("open");
                 double high = rs.getDouble("high");
@@ -247,7 +265,7 @@ public class DBHandler {
                 double close = rs.getDouble("close");
                 double volume = rs.getDouble("volume");
                 LocalDateTime date = rs.getObject("date", LocalDateTime.class);
-                result.add(new ChartDataController.ChartDTO(timestamp, open, high, low, close, volume, date));
+                result.add(new ChartDataController.ChartDTO(id, timestamp, open, high, low, close, volume, date));
             }
         } catch (SQLException e) {
             System.out.println("Error executing query: " + e.getMessage());
@@ -276,6 +294,7 @@ public class DBHandler {
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
+                long id = rs.getLong("id");
                 long timestamp = rs.getLong("timestamp") / 1000;
                 double open = rs.getDouble("open");
                 double high = rs.getDouble("high");
@@ -283,7 +302,7 @@ public class DBHandler {
                 double close = rs.getDouble("close");
                 double volume = rs.getDouble("volume");
                 LocalDateTime date = rs.getObject("date", LocalDateTime.class);
-                result.add(new ChartDataController.ChartDTO(timestamp, open, high, low, close, volume, date));
+                result.add(new ChartDataController.ChartDTO(id, timestamp, open, high, low, close, volume, date));
             }
         } catch (SQLException e) {
             System.out.println("Error executing query: " + e.getMessage());

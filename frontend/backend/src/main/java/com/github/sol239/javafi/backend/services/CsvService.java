@@ -20,11 +20,19 @@ public class CsvService {
         this.dbHandler = dbHandler;
     }
 
+    public String getLastId(String tableName) {
+        return dbHandler.getLastId(tableName);
+    }
+
     public void insertCsvData(String tableName, InputStream csvInputStream) {
         dbHandler.insertCsvData(tableName, csvInputStream);
     }
 
     public ResultSet getLastNRows(String tableName, int numberOfRows) {
         return dbHandler.getLastNRows(tableName, numberOfRows);
+    }
+
+    public ResultSet getRowsFromTo(String tableName, int numberOfRows, String fromId, String toId) {
+        return dbHandler.getDataFromTo(tableName, numberOfRows, fromId, toId);
     }
 }

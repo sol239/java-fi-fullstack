@@ -35,7 +35,7 @@ public class BacktestController {
             @RequestParam String stopLossEnabled,
             @RequestParam String takeProfitEnabled
     ) {
-        System.out.println("Running backtest.");
+        System.out.println("Running backtest for table: " + tableName);
         String result = backtestService.runBackTest(
                 tableName, // This should be replaced with the actual table name if needed
                 balance,

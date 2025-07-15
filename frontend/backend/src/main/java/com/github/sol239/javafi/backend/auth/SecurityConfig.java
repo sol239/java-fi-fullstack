@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .cors() // povolí CORS podle WebConfig
                 .and()
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login").permitAll()
+                        .requestMatchers("/login", "/public/**", "/register").permitAll()
                         .anyRequest().authenticated()
                 )
                 .userDetailsService(userDetailsService)

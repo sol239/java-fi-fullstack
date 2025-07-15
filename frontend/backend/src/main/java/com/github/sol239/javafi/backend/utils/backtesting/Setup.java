@@ -96,7 +96,7 @@ public class Setup {
                 "delaySeconds = " + delaySeconds + "\n" +
                 "maxOpenedTrades = " + maxOpenedTrades + "\n" +
                 "dateRestriction = " + dateRestriction + "\n" +
-                "tradeLifeSpanSeconds = " + tradeLifeSpanSeconds + "\n";
+                "tradeLifeSpanSeconds = " + tradeLifeSpanSeconds;
     }
 
 
