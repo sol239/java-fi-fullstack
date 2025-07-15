@@ -1,11 +1,6 @@
 <template>
   <!-- TODO: Fix height - it has to be automatic -->
-  <div v-if="selectedView === 'chart'" ref="chartContainer" style="width: auto; height: 600px; margin-top: 20px;"></div>
-  <div v-else>
-      <UTable :data="data" class="flex-1" />
-  </div>
-
-
+  <div ref="chartContainer" style="width: auto; height: 600px; margin-top: 20px;"></div>
 </template>
 
 <script setup>
@@ -13,43 +8,25 @@ import { ref, onMounted, watch } from 'vue'
 import * as LightweightCharts from 'lightweight-charts'
 import { useSelectedTableStore } from '@/stores/selectedTable'
 
-
-// table or chart
-const selectedView = ref('chart')
-
 function dedupeAndSortChartData(data) {
 
 
+  console.log("Dedupe and sort chart data:", data);
 
   // Remove duplicates by time
   const seen = new Set();
   const filtered = data.filter(item => {
     if (seen.has(item.time)) return false;
     seen.add(item.time);
-    console.log("Dedupe and sort chart data:", data);
-
     return true;
   });
   // Sort ascending by time
-  console.log("Dedupe and sort chart data:", data);
-
   return filtered.sort((a, b) => a.time - b.time);
 }
 class Datafeed {
   constructor() {
     this._earliestId = 0;
     this._data = [];
-    // Optionally, initialize the global flag
-    window.lastIndex1Reached = false;
-  }
-
-  removeDuplicates() {
-    const seen = new Set();
-    this._data = this._data.filter(item => {
-      if (seen.has(item.time)) return false;
-      seen.add(item.time);
-      return true;
-    });
   }
 
   setEarliestId(earliestId) {
@@ -57,25 +34,9 @@ class Datafeed {
   }
 
   async getBars(numberOfExtraBars) {
-    // Stop fetching if we've reached the last index
-    if (window.lastIndex1Reached) {
-      console.log("No more data to fetch (lastIndex1 reached).");
-      return this._data;
-    }
     const historicalData = await functionFetchData(this._earliestId, numberOfExtraBars);
-    if (historicalData.length === 0) {
-      window.lastIndex1Reached = true;
-      console.log("Set lastIndex1Reached = true");
-      return this._data;
-    }
     this._data = [...historicalData, ...this._data];
-    this.removeDuplicates();
     this._earliestId = historicalData[0].id;
-    // If _earliestId is at the last index, set the flag
-    if (this._earliestId <= 1) { // replace 1 with your actual lastIndex1 value if needed
-      window.lastIndex1Reached = true;
-      console.log("Set lastIndex1Reached = true");
-    }
     return this._data;
   }
 }
@@ -99,9 +60,22 @@ class Chart {
         const data = await this.datafeed.getBars(numberBarsToLoad);
 
 
+        const chartData =
+          (data || []).map(item => ({
+            id: item.id,
+            time: item.timestamp,
+            open: item.open,
+            high: item.high,
+            low: item.low,
+            close: item.close
+          }))
+          console.log("Data reordered!");
+          chartData = dedupeAndSortChartData(chartData);
+
         setTimeout(() => {
-          this.series.setData(data);
-        }, 200);
+          console.log("SETTING NEW", chartData);
+          this.series.setData(chartData);
+        }, 2000);
       }
     });
   }
@@ -262,16 +236,8 @@ watch(() => selectedTableStore.selectedTable, async (newTableName) => {
   if (newTableName) {
     lastIndex = await getTableLastIndex(newTableName)
     console.log('Last index for new table:', lastIndex)
-    window.lastIndex1Reached = false; // reset global flag
-
-    // Vytvoř nový datafeed a nastav ho do grafu
-    const datafeed = new Datafeed();
-    ch.setDatafeed(datafeed);
-    ch.setLastIndex(lastIndex);
-    ch.datafeed.setEarliestId(Number(lastIndex));
-
-    // Nastav data do grafu
-    await ch.setSeriesData(200);
+    //const chartData = await fetchChartData()
+    //ch.setSeriesData(chartData)
   }
 }, { immediate: true })
 
