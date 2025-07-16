@@ -1,5 +1,6 @@
 package com.github.sol239.javafi.backend.services;
 
+import com.github.sol239.javafi.backend.controllers.BacktestResult;
 import com.github.sol239.javafi.backend.utils.DataObject;
 import com.github.sol239.javafi.backend.utils.backtesting.BacktestingExecutor;
 import com.github.sol239.javafi.backend.utils.backtesting.Setup;
@@ -14,7 +15,7 @@ public class BacktestService {
         this.backtestingExecutor = backtestingExecutor;
     }
 
-    public String runBackTest(
+    public BacktestResult runBackTest(
             String tableName,
             String balance,
             String leverage,
@@ -41,8 +42,8 @@ public class BacktestService {
         backtestingExecutor.createStrategiesColumns(tableName);
 
         backtestingExecutor.updateStrategiesColumns(tableName);   // TODO: does not have to be executed each time
-        DataObject result =  backtestingExecutor.run(tableName, setup.tradeLifeSpanSeconds, strategy.takeProfit, strategy.stopLoss, "C:/Users/David/Desktop/result.json", setup.dateRestriction);
-        return result.getCmd();
+        BacktestResult result =  backtestingExecutor.run(tableName, setup.tradeLifeSpanSeconds, strategy.takeProfit, strategy.stopLoss, "C:/Users/David/Desktop/result.json", setup.dateRestriction);
+        return result;
     }
 
 }

@@ -4,6 +4,8 @@
 package com.github.sol239.javafi.backend.utils.backtesting;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.sol239.javafi.backend.controllers.BacktestResult;
+import com.github.sol239.javafi.backend.controllers.BacktestSummary;
 import com.github.sol239.javafi.backend.utils.DataObject;
 import com.github.sol239.javafi.backend.utils.database.DBHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,9 +57,10 @@ public class BacktestingExecutor {
 
     /**
      * Calculates the difference between two dates and returns true if the difference is greater than 'n' seconds.
+     *
      * @param dateString1 The first date string in the format 'yyyy-MM-dd HH:mm:ss[.SSSSSS]'
      * @param dateString2 The second date string in the format 'yyyy-MM-dd HH:mm:ss[.SSSSSS]'
-     * @param n The number of seconds that the difference must be greater than
+     * @param n           The number of seconds that the difference must be greater than
      * @return True if the difference between the two dates is greater than 'n' seconds, false otherwise
      */
     public static boolean isDifferenceGreaterThan(String dateString1, String dateString2, long n) {
@@ -78,6 +81,7 @@ public class BacktestingExecutor {
 
     /**
      * Returns the name of the column that stores the signals for the strategy.
+     *
      * @param open True if the column stores the open signals, false if it stores the close signals
      * @return The name of the column that stores the signals for the strategy
      */
@@ -91,6 +95,7 @@ public class BacktestingExecutor {
 
     /**
      * Creates the columns in the database table that store the signals for the strategy.
+     *
      * @param tableName The name of the database table
      */
     public void createStrategyColumns(Strategy strategy, String tableName) {
@@ -125,6 +130,7 @@ public class BacktestingExecutor {
 
     /**
      * Updates the columns in the database table that store the signals for the strategy.
+     *
      * @param tableName The name of the database table
      */
     public void updateStrategyColumns(Strategy strategy, String tableName) {
@@ -156,7 +162,7 @@ public class BacktestingExecutor {
 
     }
 
-    public DataObject run(String tableName, long tradeLifeSpanSeconds, boolean takeProfit, boolean stopLoss, String saveResultPath, String dateRestriction) {
+    public BacktestResult run(String tableName, long tradeLifeSpanSeconds, boolean takeProfit, boolean stopLoss, String saveResultPath, String dateRestriction) {
 
         this.openedTrades.clear();
         this.winningTrades.clear();
@@ -170,7 +176,8 @@ public class BacktestingExecutor {
         try {
             rs = this.db.getResultSet(String.format("SELECT * FROM %s %s ORDER BY id", tableName, dateRestriction));
         } catch (Exception e) {
-            return new DataObject(400, "backtesting", "Error getting the data from the database");
+            BacktestSummary errorSummary = new BacktestSummary(0, 0, 0, 0.0, 0.0);
+            return new BacktestResult(errorSummary, new ArrayList<>());
         }
 
 
@@ -188,7 +195,6 @@ public class BacktestingExecutor {
         System.out.println("***************************************");
 
 
-
         int skipRows = 1;
         int c = 0;
         try {
@@ -198,12 +204,13 @@ public class BacktestingExecutor {
                     continue;
                 }
                 for (Strategy strategy : strategies) {
-                    String openX = this.getStrategyColumnName(strategy, true).substring(1, this.getStrategyColumnName(strategy ,true).length() - 1);
-                    String closeX = this.getStrategyColumnName(strategy,false).substring(1, this.getStrategyColumnName(strategy, false).length() - 1);
+                    String openX = this.getStrategyColumnName(strategy, true).substring(1, this.getStrategyColumnName(strategy, true).length() - 1);
+                    String closeX = this.getStrategyColumnName(strategy, false).substring(1, this.getStrategyColumnName(strategy, false).length() - 1);
                     boolean open = rs.getBoolean(openX);
                     boolean close = rs.getBoolean(closeX);
                     double closePrice = rs.getDouble("close");
                     String closeTime = rs.getString("date");
+                    long timestamp = rs.getLong("timestamp");
                     String now = rs.getString("date");
 
                     // trade closing
@@ -213,15 +220,14 @@ public class BacktestingExecutor {
                         boolean tradeClosed = false;
 
                         if (closePrice <= trade.stopPrice) {
-
-
-
                             trade.closeTime = closeTime;
                             trade.closePrice = closePrice;
                             trade.PnL = (trade.closePrice * trade.amount - trade.openPrice * trade.amount) * strategy.setup.leverage * (1 - strategy.setup.fee);
                             if (closePrice >= trade.openPrice) {
+                                trade.closeTimestamp = timestamp;
                                 winningTrades.add(trade);
                             } else {
+                                trade.closeTimestamp = timestamp;
                                 loosingTrades.add(trade);
                             }
                             iterator.remove();
@@ -248,8 +254,10 @@ public class BacktestingExecutor {
                             trade.PnL = (trade.closePrice * trade.amount - trade.openPrice * trade.amount) * strategy.setup.leverage * (1 - strategy.setup.fee);
 
                             if (closePrice >= trade.openPrice) {
+                                trade.closeTimestamp = timestamp;
                                 winningTrades.add(trade);
                             } else {
+                                trade.closeTimestamp = timestamp;
                                 loosingTrades.add(trade);
                             }
                             iterator.remove();
@@ -269,13 +277,13 @@ public class BacktestingExecutor {
                     // LONG TRADE OPENING
                     if (open && this.openedTrades.size() < strategy.setup.maxTrades && strategy.setup.balance - strategy.setup.amount >= 0) {
                         if (!this.openedTrades.isEmpty()) {
-                            if (isDifferenceGreaterThan(now,this.openedTrades.get(this.openedTrades.size() - 1).openTime, strategy.setup.delaySeconds)) {
-                                Trade newTrade = new Trade(closePrice, closePrice * (strategy.setup.takeProfit), closePrice * (strategy.setup.stopLoss), 0, (strategy.setup.amount * strategy.setup.leverage / closePrice), tableName, rs.getString("date"), "", strategy);
+                            if (isDifferenceGreaterThan(now, this.openedTrades.get(this.openedTrades.size() - 1).openTime, strategy.setup.delaySeconds)) {
+                                Trade newTrade = new Trade(closePrice, closePrice * (strategy.setup.takeProfit), closePrice * (strategy.setup.stopLoss), 0, (strategy.setup.amount * strategy.setup.leverage / closePrice), tableName, rs.getString("date"), "", strategy, timestamp, 0);
                                 strategy.setup.balance -= strategy.setup.amount / closePrice;
                                 this.openedTrades.add(newTrade);
                             }
-                        } else  {
-                            Trade newTrade = new Trade(closePrice, closePrice * (strategy.setup.takeProfit), closePrice * (strategy.setup.stopLoss), 0, (strategy.setup.amount * strategy.setup.leverage / closePrice), tableName, rs.getString("date"), "", strategy);
+                        } else {
+                            Trade newTrade = new Trade(closePrice, closePrice * (strategy.setup.takeProfit), closePrice * (strategy.setup.stopLoss), 0, (strategy.setup.amount * strategy.setup.leverage / closePrice), tableName, rs.getString("date"), "", strategy, timestamp, 0);
                             strategy.setup.balance -= strategy.setup.amount / closePrice;
                             this.openedTrades.add(newTrade);
                         }
@@ -301,7 +309,7 @@ public class BacktestingExecutor {
 
         long t2 = System.currentTimeMillis();
 
-        DataObject result = evaluateTrades(winningTrades, loosingTrades);
+        BacktestSummary summary = evaluateTrades(winningTrades, loosingTrades);
         List<Trade> allTrades = new ArrayList<>();
         allTrades.addAll(winningTrades);
         allTrades.addAll(loosingTrades);
@@ -311,8 +319,9 @@ public class BacktestingExecutor {
             saveBacktesting(saveResultPath, allTrades);
         }
 
-        return result;
 
+
+        return new BacktestResult(summary, allTrades);
 
         /*
         System.out.println("\n****************************************");
@@ -322,7 +331,7 @@ public class BacktestingExecutor {
         */
     }
 
-    public void saveBacktesting(String path, List<Trade> trades ) {
+    public void saveBacktesting(String path, List<Trade> trades) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             File outputFile = new File(path);
@@ -333,10 +342,6 @@ public class BacktestingExecutor {
     }
 
     public void closeTrades(Iterator<Trade> iterator, Setup setup, double closePrice, String closeTime, long delaySeconds) {
-
-
-        //System.out.println("closeTrades");
-
         while (iterator.hasNext()) {
             Trade trade = iterator.next();
             // 1) close if trade lifetime is greater than 2 days
@@ -349,8 +354,12 @@ public class BacktestingExecutor {
                 trade.closePrice = closePrice;
                 trade.PnL = (trade.closePrice * trade.amount - trade.openPrice * trade.amount) * setup.leverage * (1 - setup.fee);
                 if (closePrice >= trade.openPrice) {
+                    // TODO: this is not correct.
+                    trade.closeTimestamp = trade.openTimestamp + delaySeconds;
                     winningTrades.add(trade);
                 } else {
+                    // TODO: this is not correct.
+                    trade.closeTimestamp = trade.openTimestamp + delaySeconds;
                     loosingTrades.add(trade);
                 }
                 iterator.remove();
@@ -360,7 +369,7 @@ public class BacktestingExecutor {
         }
     }
 
-    public static DataObject evaluateTrades(List<Trade> winningTrades, List<Trade> loosingTrades) {
+    public static BacktestSummary evaluateTrades(List<Trade> winningTrades, List<Trade> loosingTrades) {
         long winningTradesCount = winningTrades.size();
         long loosingTradesCount = loosingTrades.size();
         double winRate = (double) winningTradesCount / (winningTradesCount + loosingTradesCount);
@@ -388,7 +397,7 @@ public class BacktestingExecutor {
             }
             // SHORT TRADE
             else if (trade.takePrice < trade.openPrice) {
-                _profit += -((trade.closePrice * trade.amount - trade.openPrice * trade.amount)  * (1 - trade.strategy.setup.fee));
+                _profit += -((trade.closePrice * trade.amount - trade.openPrice * trade.amount) * (1 - trade.strategy.setup.fee));
             }
 
         }
@@ -403,9 +412,17 @@ public class BacktestingExecutor {
                 _profit
         );
 
-        DataObject dataObject = new DataObject(200, "backtesting", "Backtesting completed:\n" + summary);
+        BacktestSummary summaryObject = new BacktestSummary(
+                (int) winningTradesCount,
+                (int) loosingTradesCount,
+                (int) (winningTradesCount + loosingTradesCount),
+                winRate,
+                _profit
+        );
 
-        return dataObject;
+
+        return summaryObject;
     }
 
 }
+

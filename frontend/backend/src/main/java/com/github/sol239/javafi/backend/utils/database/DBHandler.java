@@ -141,15 +141,15 @@ public class DBHandler {
     }
 
     public String getLastId(String tableName) {
-        String query = "SELECT id FROM " + tableName + " ORDER BY id DESC LIMIT 1;";
+        String query = "SELECT COUNT(id) AS row_count FROM " + tableName + ";";
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             if (rs.next()) {
-                return String.valueOf(rs.getLong("id"));
+                return String.valueOf(rs.getLong("row_count"));
             }
         } catch (SQLException e) {
-            System.out.println("Error getting last id: " + e.getMessage());
+            System.out.println("Error getting row count: " + e.getMessage());
         }
         return null;
     }

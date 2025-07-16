@@ -18,7 +18,7 @@ public class BacktestController {
 
 
     @PostMapping("run")
-    public String runBacktest(
+    public BacktestResult runBacktest(
             @RequestParam String tableName,
             @RequestParam String balance,
             @RequestParam String leverage,
@@ -36,7 +36,7 @@ public class BacktestController {
             @RequestParam String takeProfitEnabled
     ) {
         System.out.println("Running backtest for table: " + tableName);
-        String result = backtestService.runBackTest(
+        BacktestResult result = backtestService.runBackTest(
                 tableName, // This should be replaced with the actual table name if needed
                 balance,
                 leverage,
@@ -52,8 +52,7 @@ public class BacktestController {
                 closeClause,
                 stopLossEnabled,
                 takeProfitEnabled
-        );;
-        System.out.println("Backtest completed: " + result);
+        );
 
         return result;
 

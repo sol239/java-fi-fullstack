@@ -56,6 +56,16 @@ public class Trade {
     public Strategy strategy;
 
     /**
+     * The time at which the trade was opened (timestamp).
+     */
+    public long openTimestamp;
+
+    /**
+     * The time at which the trade was closed (timestamp).
+     */
+    public long closeTimestamp;
+
+    /**
      * Constructor for Trade
      * @param takePrice the price at which the trade is desired to be closed.
      * @param stopPrice the price at which the trade is desired to be stopped. Stop price should be lower than the open and take prices.
@@ -65,8 +75,10 @@ public class Trade {
      * @param openTime the time at which the trade was opened.
      * @param closeTime the time at which the trade was closed.
      * @param strategy the strategy used for the trade.
+     * @param openTimestamp the timestamp at which the trade was opened.
+     * @param closeTimestamp the timestamp at which the trade was closed.
      */
-    public Trade(double openPrice, double takePrice, double stopPrice, double closePrice, double amount, String assetName, String openTime, String closeTime, Strategy strategy) {
+    public Trade(double openPrice, double takePrice, double stopPrice, double closePrice, double amount, String assetName, String openTime, String closeTime, Strategy strategy, long openTimestamp, long closeTimestamp) {
         this.openPrice = openPrice;
         this.takePrice = takePrice;
         this.stopPrice = stopPrice;
@@ -76,6 +88,8 @@ public class Trade {
         this.openTime = openTime;
         this.closeTime = closeTime;
         this.strategy = strategy;
+        this.openTimestamp = openTimestamp;
+        this.closeTimestamp = closeTimestamp;
     }
 
     /**
@@ -91,6 +105,8 @@ public class Trade {
                 "profit = " + String.format("%.2f", PnL) + "\n" +
                 "assetName = " + assetName + "\n" +
                 "openTime = " + openTime + "\n" +
-                "closeTime = " + closeTime + "\n";
+                "closeTime = " + closeTime + "\n" +
+                "openTimestamp = " + openTimestamp + "\n" +
+                "closeTimestamp = " + closeTimestamp;
     }
 }
