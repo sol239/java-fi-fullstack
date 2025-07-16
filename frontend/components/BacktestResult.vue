@@ -8,9 +8,11 @@ const { backtestResult } = storeToRefs(backtestResultStore)
 
 // Parse summary from result string
 const summary = computed(() => {
-  const result = backtestResult.value || ''
+  const result = backtestResult.value?.resultString || ''
   const regex = /Winning trades: (\d+) \| Losing trades: (\d+) \| Total trades: (\d+) \| Win rate: ([\d,.]+)% \| Profit: ([\d,.]+) USD/
   const match = result.match(regex)
+  console.log("Parsing summary from result string:", result)
+  console.log("Match result:", match)
   if (!match) return null
   return {
     winning: match[1],

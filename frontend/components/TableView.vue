@@ -1,6 +1,8 @@
 <template>
   <!-- TODO: Fix height - it has to be automatic -->
+  <UButton color="primary" @click="ch.showMarkers()">Show Markers</UButton>
   <div v-if="selectedView === 'chart'" ref="chartContainer" style="width: auto; height: 600px; margin-top: 20px;"></div>
+  
   <div v-else>
       <UTable :data="data" class="flex-1" />
 
@@ -13,6 +15,8 @@
 import { ref, onMounted, watch } from 'vue'
 import * as LightweightCharts from 'lightweight-charts'
 import { useSelectedTableStore } from '@/stores/selectedTable'
+const backtestResultStore = useBacktestResultStore()
+const { backtestResult } = storeToRefs(backtestResultStore)
 
 
 // TODO: implement switcher
@@ -40,8 +44,11 @@ class Datafeed {
   constructor() {
     this._earliestId = 0;
     this._data = [];
-    // Optionally, initialize the global flag
-    window.lastIndex1Reached = false;
+
+    // TODO: Use a reactive store or state management solution
+    if (typeof window !== 'undefined') {
+      window.lastIndex1Reached = false;
+    }
   }
 
   getData() {
@@ -93,6 +100,41 @@ class Chart {
     this.chartSettings = null;
     this.datafeed = new Datafeed();
     this.lastIndex = "0";
+    this.markers = [];
+  }
+
+  clearMarkers() {
+    this.markers = [];
+  }
+
+  addMarkers() {
+  if (!backtestResult.value || !backtestResult.value.allTrades) {
+    console.warn('No backtest result or trades available.');
+    return;
+  }
+  for (const marker of backtestResult.value.allTrades) {
+    this.markers.push({
+      time: marker.openTimestamp,
+      position: 'belowBar',
+      color: '#2196F3',
+      shape: 'arrowUp',
+      text: "Buy @ " + Math.floor(marker.openPrice)
+    });
+
+    this.markers.push({
+      time: marker.closeTimestamp,
+      position: 'aboveBar',
+      color: '#F44336',
+      shape: 'arrowDown',
+      text: "Sell @ " + Math.floor(marker.closePrice)
+    });
+  }
+}
+
+  showMarkers() {
+    console.log("Markers:", this.markers);
+    LightweightCharts.createSeriesMarkers(this.series, this.markers);
+    this.chart.timeScale().fitContent();
   }
 
   activateInfinity() {
@@ -151,7 +193,6 @@ class Chart {
   async setSeriesData(count) {
     const bars = await this.datafeed.getBars(count);
     if (this.series) {
-      console.log("Setting series data:", bars);
       this.series.setData(bars);
     }
     else {
@@ -178,21 +219,18 @@ async function functionFetchData(beforeId, count = 50) {
   beforeId = Math.ceil(beforeId);
   count = Math.ceil(count);
 
-  console.log(`Fetching data before ID: ${beforeId}, count: ${count}`);
 
   const currentTableName = selectedTableStore.selectedTable
   const encodedTableName = encodeURIComponent(currentTableName)
   const config = useRuntimeConfig()
   const backendBase = config.public.backendBase || 'http://localhost:8080'
   const url = `${backendBase}/api/betweendata?table=${encodedTableName}&id1=${beforeId - count}&id2=${beforeId}`
-  console.log(`Fetching data from: ${url}`)
 
   // Use $fetch instead of useFetch
   const data = await $fetch(url, {
     credentials: 'include'
   })
 
-  console.log("Fetched data:", data)
 
   const chartData = (data || []).map(item => ({
     id: item.id,
@@ -255,11 +293,14 @@ onMounted(async () => {
     ch.datafeed.setEarliestId(Number(lastIndex))
     await ch.setSeriesData(200) // <-- await here
 
+
+
+    ch.addMarkers()
+
     ch.activateInfinity()
 
     // Now log the data after it has been fetched
     const chartData = await ch.datafeed.getBars(200)
-    console.log("Chart data:", chartData)
 
     // TODO: implement table view
   }
@@ -276,7 +317,9 @@ watch(() => selectedTableStore.selectedTable, async (newTableName) => {
     ch.setDatafeed(datafeed);
     ch.setLastIndex(lastIndex);
     ch.datafeed.setEarliestId(Number(lastIndex));
-
+    ch.clearMarkers(); // Clear previous markers
+    ch.clearSeries(); // Clear previous series
+    ch.addMarkers(); // Add markers for the new table
     // Nastav data do grafu
     await ch.setSeriesData(200);
   }

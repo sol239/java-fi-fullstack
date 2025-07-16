@@ -5,6 +5,49 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import { useSelectedTableStore } from '#imports'
 import { useBacktestResultStore } from '#imports'
 
+export interface TradeSetup {
+  balance: number;
+  leverage: number;
+  fee: number;
+  takeProfit: number;
+  stopLoss: number;
+  amount: number;
+  riskReward: number;
+  maxTrades: number;
+  delaySeconds: number;
+  dateRestriction: string;
+  maxOpenedTrades: number;
+  tradeLifeSpanSeconds: number;
+}
+
+export interface TradeStrategy {
+  openClause: string;
+  closeClause: string;
+  takeProfit: boolean;
+  stopLoss: boolean;
+  setup: TradeSetup;
+}
+
+export interface TradeResult {
+  openPrice: number;
+  takePrice: number;
+  stopPrice: number;
+  closePrice: number;
+  amount: number;
+  assetName: string;
+  openTime: string;
+  closeTime: string;
+  PnL: number;
+  strategy: TradeStrategy;
+  openTimestamp: number;
+  closeTimestamp: number;
+}
+
+export interface BacktestResult {
+  resultString: string;
+  allTrades: TradeResult[];
+}
+
 const open = ref(true)
 
 
@@ -47,6 +90,44 @@ const config = useRuntimeConfig()
 const backendBase = config.public.backendBase
 const url = `${backendBase}/api/backtest/run`
 
+function toTradeResultArray(raw: any[]): TradeResult[] {
+  return raw.map((trade) => ({
+    openPrice: trade.openPrice,
+    takePrice: trade.takePrice,
+    stopPrice: trade.stopPrice,
+    closePrice: trade.closePrice,
+    amount: trade.amount,
+    assetName: trade.assetName,
+    openTime: trade.openTime,
+    closeTime: trade.closeTime,
+    PnL: trade.PnL,
+    strategy: {
+      openClause: trade.strategy.openClause,
+      closeClause: trade.strategy.closeClause,
+      takeProfit: trade.strategy.takeProfit,
+      stopLoss: trade.strategy.stopLoss,
+      setup: {
+        balance: trade.strategy.setup.balance,
+        leverage: trade.strategy.setup.leverage,
+        fee: trade.strategy.setup.fee,
+        takeProfit: trade.strategy.setup.takeProfit,
+        stopLoss: trade.strategy.setup.stopLoss,
+        amount: trade.strategy.setup.amount,
+        riskReward: trade.strategy.setup.riskReward,
+        maxTrades: trade.strategy.setup.maxTrades,
+        delaySeconds: trade.strategy.setup.delaySeconds,
+        dateRestriction: trade.strategy.setup.dateRestriction,
+        maxOpenedTrades: trade.strategy.setup.maxOpenedTrades,
+        tradeLifeSpanSeconds: trade.strategy.setup.tradeLifeSpanSeconds,
+      }
+    },
+    openTimestamp: trade.openTimestamp,
+    closeTimestamp: trade.closeTimestamp,
+  }));
+}
+
+
+
 async function onSubmit(event: FormSubmitEvent<typeof form>) {
     message.value = ''
     error.value = ''
@@ -82,9 +163,19 @@ async function onSubmit(event: FormSubmitEvent<typeof form>) {
             throw new Error(fetchError.value.message || 'Backtest failed')
         }
 
-        backtestResultStore.setResult(String(data.value))
+        const resultString = JSON.stringify(data.value.resultString, null, 2);
+        const allTradesRaw = JSON.parse(JSON.stringify(data.value.allTrades));
+        const allTrades: TradeResult[] = toTradeResultArray(allTradesRaw);
+        const result: BacktestResult = {
+            resultString,
+            allTrades
+        };
+
+        console.log('All trades:', allTrades);
+        console.log('Result string:', resultString);
+
+        backtestResultStore.setResult(result)
         message.value = 'Backtest completed successfully.'
-        console.log('Backtest result (store):', backtestResultStore.backtestResult)
 
     } catch (err: any) {
         error.value = 'Backtest failed: ' + (err?.message || err)
