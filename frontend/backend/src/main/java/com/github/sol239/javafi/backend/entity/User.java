@@ -3,6 +3,8 @@ package com.github.sol239.javafi.backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Set;
+
 @Entity
 @Getter
 @Setter
@@ -23,6 +25,8 @@ public class User {
 
     private boolean enabled = true;
 
-    @Column(nullable = false)
-    private String roles; // e.g., "USER", "ADMIN"
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role")
+    private Set<String> roles;
 }

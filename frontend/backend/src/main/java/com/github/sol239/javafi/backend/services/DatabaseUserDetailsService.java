@@ -21,8 +21,9 @@ public class DatabaseUserDetailsService implements UserDetailsService {
                 .orElseThrow(() ->
                         new UsernameNotFoundException("User not found"));
         // Convert comma‑separated roles into GrantedAuthority list
-        var authorities = AuthorityUtils
-                .commaSeparatedStringToAuthorityList(user.getRoles());
+        var authorities = user.getRoles().stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                .toList();
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),

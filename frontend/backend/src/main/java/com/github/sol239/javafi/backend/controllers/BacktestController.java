@@ -54,6 +54,8 @@ public class BacktestController {
                 takeProfitEnabled
         );
 
+        System.out.println("Backtest result: " + result.backtestSummary());
+
         return result;
 
     }
