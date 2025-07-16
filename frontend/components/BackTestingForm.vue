@@ -5,48 +5,10 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import { useSelectedTableStore } from '#imports'
 import { useBacktestResultStore } from '#imports'
 
-export interface TradeSetup {
-  balance: number;
-  leverage: number;
-  fee: number;
-  takeProfit: number;
-  stopLoss: number;
-  amount: number;
-  riskReward: number;
-  maxTrades: number;
-  delaySeconds: number;
-  dateRestriction: string;
-  maxOpenedTrades: number;
-  tradeLifeSpanSeconds: number;
-}
 
-export interface TradeStrategy {
-  openClause: string;
-  closeClause: string;
-  takeProfit: boolean;
-  stopLoss: boolean;
-  setup: TradeSetup;
-}
 
-export interface TradeResult {
-  openPrice: number;
-  takePrice: number;
-  stopPrice: number;
-  closePrice: number;
-  amount: number;
-  assetName: string;
-  openTime: string;
-  closeTime: string;
-  PnL: number;
-  strategy: TradeStrategy;
-  openTimestamp: number;
-  closeTimestamp: number;
-}
 
-export interface BacktestResult {
-  resultString: string;
-  allTrades: TradeResult[];
-}
+
 
 const open = ref(true)
 
@@ -163,16 +125,16 @@ async function onSubmit(event: FormSubmitEvent<typeof form>) {
             throw new Error(fetchError.value.message || 'Backtest failed')
         }
 
-        const resultString = JSON.stringify(data.value.resultString, null, 2);
-        const allTradesRaw = JSON.parse(JSON.stringify(data.value.allTrades));
+        console.log('Backtest response data:', data.value)  
+
+        const responseData = data.value as { backtestSummary: BacktestSummary; allTrades: any[] };
+        const summary: BacktestSummary = responseData.backtestSummary;
+        const allTradesRaw = JSON.parse(JSON.stringify(responseData.allTrades));
         const allTrades: TradeResult[] = toTradeResultArray(allTradesRaw);
         const result: BacktestResult = {
-            resultString,
+            summary,
             allTrades
         };
-
-        console.log('All trades:', allTrades);
-        console.log('Result string:', resultString);
 
         backtestResultStore.setResult(result)
         message.value = 'Backtest completed successfully.'
@@ -187,6 +149,9 @@ async function onSubmit(event: FormSubmitEvent<typeof form>) {
 
 // console.log selectedTab with watch
 import { watch } from 'vue'
+import type { TradeResult } from '~/entity/TradeResult'
+import type { BacktestResult } from '~/entity/BacktestResult'
+import type { BacktestSummary } from '~/entity/BacktestSummary'
 watch(selectedTab, (newTab) => {
     console.log(`Selected tab changed to: ${newTab}`)
 }, { immediate: true })
@@ -201,7 +166,7 @@ watch(selectedTab, (newTab) => {
                 <UTabs :items="items" v-model="selectedTab" class="w-full" />
 
                 <UForm :state="form" @submit="onSubmit" class="flex flex-col gap-4">
-                    <template v-if="selectedTab == 0">
+                    <template v-if="selectedTab == '0'">
                         <div class="flex flex-row gap-6">
                             <div class="flex flex-col gap-4 flex-1">
                                 <div>
@@ -265,7 +230,7 @@ watch(selectedTab, (newTab) => {
                             </div>
                         </div>
                     </template>
-                    <template v-else-if="selectedTab == 1">
+                    <template v-else-if="selectedTab == '1'">
                         <div class="flex flex-row gap-6">
                             <div class="flex flex-col gap-4 flex-1">
                                 <div>
@@ -312,14 +277,12 @@ watch(selectedTab, (newTab) => {
                         <UAlert
                             v-if="message"
                             icon="i-heroicons-check-circle"
-                            color="green"
                             variant="soft"
                             :title="message"
                         />
                         <UAlert
                             v-if="error"
                             icon="i-heroicons-exclamation-triangle"
-                            color="red"
                             variant="soft"
                             :title="error"
                         />

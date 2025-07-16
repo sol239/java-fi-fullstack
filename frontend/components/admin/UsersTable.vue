@@ -7,14 +7,47 @@ import { User } from '~/entity/User'
 const { copy } = useClipboard()
 const toast = useToast()
 
-// TODO: Fetch real user data from backend
-const user1: User = new User(1, 'john_doe', 'password123', true, ['ROLE_ADMIN', 'ROLE_USER'])
-const user2: User = new User(2, 'jane_doe', 'securepassword', true, ['ROLE_USER'])
-const user3: User = new User(3, 'alice_smith', 'mypassword', false, ['ROLE_USER'])
-const user4: User = new User(4, 'bob_jones', 'anotherpassword', true, ['ROLE_USER'])
-const users: User[] = [user1, user2, user3, user4]
+const config = useRuntimeConfig()
+const backendBase = config.public.backendBase
+const url = `${backendBase}/api/users`
 
-const data = ref(users)
+const data = ref<User[]>([]);
+
+async function fetchUsers() {
+  try {
+    const { data: fetchData, error: fetchError } = await useFetch(url, {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    if (fetchError.value) throw fetchError.value;
+
+    // Map raw data to User instances
+    const users = (fetchData.value as any[]).map((u) =>
+      new User(
+        u.id,
+        u.username,
+        u.password,
+        u.enabled,
+        typeof u.roles === 'string' ? u.roles.split(',') : u.roles
+      )
+    );
+    data.value = users;
+
+    console.log('User data:', users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    toast.add({
+      title: 'Failed to fetch users',
+      color: 'error',
+      icon: 'i-lucide-alert-triangle'
+    });
+  }
+}
+
+fetchUsers();
+
+
 
 const columns: TableColumn<User>[] = [
   { accessorKey: 'id', header: 'ID' },
@@ -59,40 +92,29 @@ function getDropdownActions(user: User): DropdownMenuItem[][] {
   <UTable :data="data" :columns="columns" class="flex-1">
     <template #username-cell="{ row }">
       <div class="flex items-center gap-3">
-        <UAvatar
-          size="lg"
-          :alt="`${row.original.username} avatar`"
-        />
+        <UAvatar size="lg" :alt="`${row.original.username} avatar`" />
         <div>
           <p class="font-medium text-highlighted">
             {{ row.original.username }}
-          </p>
-          <p class="text-xs text-gray-500">
-            {{ row.original.password }}
           </p>
         </div>
       </div>
     </template>
     <template #enabled-cell="{ row }">
-      <UBadge :color="row.original.enabled ? 'green' : 'red'">
+      <UBadge>
         {{ row.original.enabled ? 'Enabled' : 'Disabled' }}
       </UBadge>
     </template>
     <template #roles-cell="{ row }">
       <div class="flex flex-wrap gap-1">
-        <UBadge v-for="role in row.original.roles" :key="role" color="gray">
+        <UBadge v-for="role in row.original.roles" :key="role">
           {{ role }}
         </UBadge>
       </div>
     </template>
     <template #action-cell="{ row }">
       <UDropdownMenu :items="getDropdownActions(row.original)">
-        <UButton
-          icon="i-lucide-ellipsis-vertical"
-          color="neutral"
-          variant="ghost"
-          aria-label="Actions"
-        />
+        <UButton icon="i-lucide-ellipsis-vertical" color="neutral" variant="ghost" aria-label="Actions" />
       </UDropdownMenu>
     </template>
   </UTable>

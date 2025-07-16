@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { BacktestResult } from '~/components/BackTestingForm.vue'
+import type { BacktestResult } from '~/entity/BacktestResult'
 
 export const useBacktestResultStore = defineStore('backtestResult', () => {
   const backtestResult = ref<BacktestResult | null>(null) // use BacktestResult type
