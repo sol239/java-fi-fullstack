@@ -2,9 +2,9 @@
   <!-- TODO: Fix height - it has to be automatic -->
   <UButton color="primary" @click="ch.showMarkers()">Show Markers</UButton>
   <div v-if="selectedView === 'chart'" ref="chartContainer" style="width: auto; height: 600px; margin-top: 20px;"></div>
-  
+
   <div v-else>
-      <UTable :data="data" class="flex-1" />
+    <UTable :data="data" class="flex-1" />
 
   </div>
 
@@ -108,30 +108,38 @@ class Chart {
   }
 
   addMarkers() {
-  if (!backtestResult.value || !backtestResult.value.allTrades) {
-    console.warn('No backtest result or trades available.');
-    return;
-  }
-  for (const marker of backtestResult.value.allTrades) {
-    this.markers.push({
-      time: marker.openTimestamp,
-      position: 'belowBar',
-      color: '#2196F3',
-      shape: 'arrowUp',
-      text: "Buy @ " + Math.floor(marker.openPrice)
-    });
+    if (!backtestResult.value || !backtestResult.value.allTrades) {
+      console.warn('No backtest result or trades available.');
+      return;
+    }
+    for (const marker of backtestResult.value.allTrades) {
 
-    this.markers.push({
-      time: marker.closeTimestamp,
-      position: 'aboveBar',
-      color: '#F44336',
-      shape: 'arrowDown',
-      text: "Sell @ " + Math.floor(marker.closePrice)
-    });
+      const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+      const buyColor = randomColor;
+      const sellColor = randomColor;
+
+
+
+      this.markers.push({
+        time: marker.openTimestamp,
+        position: 'belowBar',
+        color: buyColor,
+        shape: 'arrowUp',
+        text: "BUY @ OPEN: " + Math.floor(marker.openPrice)
+      });
+
+      this.markers.push({
+        time: marker.closeTimestamp,
+        position: 'aboveBar',
+        color: sellColor,
+        shape: 'arrowDown',
+        text: "Sell @ PROFIT: " + Math.floor(marker.PnL)
+      });
+    }
   }
-}
 
   showMarkers() {
+    // TODO: make the markers work with infinity loading
     console.log("Markers:", this.markers);
     LightweightCharts.createSeriesMarkers(this.series, this.markers);
     this.chart.timeScale().fitContent();
@@ -148,6 +156,7 @@ class Chart {
 
         setTimeout(() => {
           this.series.setData(data);
+          //this.showMarkers();
         }, 200);
       }
     });
@@ -188,8 +197,6 @@ class Chart {
 
   }
 
-
-
   async setSeriesData(count) {
     const bars = await this.datafeed.getBars(count);
     if (this.series) {
@@ -201,6 +208,9 @@ class Chart {
   }
 
   clearSeries() {
+    if (this.series && this.chart) {
+      this.chart.removeSeries(this.series);
+    }
     this.series = null;
   }
 
@@ -214,6 +224,7 @@ class Chart {
   }
 
 }
+
 async function functionFetchData(beforeId, count = 50) {
 
   beforeId = Math.ceil(beforeId);
@@ -292,24 +303,20 @@ onMounted(async () => {
     ch.setLastIndex(lastIndex)
     ch.datafeed.setEarliestId(Number(lastIndex))
     await ch.setSeriesData(200) // <-- await here
-
-
-
     ch.addMarkers()
-
     ch.activateInfinity()
 
-    // Now log the data after it has been fetched
-    const chartData = await ch.datafeed.getBars(200)
+    //const chartData = await ch.datafeed.getBars(200)
 
-    // TODO: implement table view
   }
 })
 
 watch(() => selectedTableStore.selectedTable, async (newTableName) => {
   if (newTableName) {
-    lastIndex = await getTableLastIndex(newTableName)
+    console.log("SWITCHING TABLE TO:", newTableName)
     console.log('Last index for new table:', lastIndex)
+
+    lastIndex = await getTableLastIndex(newTableName)
     window.lastIndex1Reached = false; // reset global flag
 
     // Vytvoř nový datafeed a nastav ho do grafu
@@ -319,6 +326,9 @@ watch(() => selectedTableStore.selectedTable, async (newTableName) => {
     ch.datafeed.setEarliestId(Number(lastIndex));
     ch.clearMarkers(); // Clear previous markers
     ch.clearSeries(); // Clear previous series
+
+    ch.setSeries(); // <-- ADD THIS LINE to create a new series
+
     ch.addMarkers(); // Add markers for the new table
     // Nastav data do grafu
     await ch.setSeriesData(200);

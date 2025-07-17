@@ -15,7 +15,7 @@ const open = ref(true)
 
 const backtestResultStore = useBacktestResultStore()
 const selectedTableStore = useSelectedTableStore()
-const tableName = selectedTableStore.selectedTable
+const tableName = computed(() => selectedTableStore.selectedTable)
 const items = ref<TabsItem[]>([
     { label: 'Setup' },
     { label: 'Strategy' }
@@ -102,7 +102,7 @@ async function onSubmit(event: FormSubmitEvent<typeof form>) {
         const { data, error: fetchError } = await useFetch(url, {
             method: 'POST',
             body: new URLSearchParams({
-                tableName: tableName,
+                tableName: tableName.value,
                 balance: form.value.balance.toString(),
                 leverage: form.value.leverage.toString(),
                 fee: form.value.fee.toString(),
@@ -154,7 +154,10 @@ import type { BacktestResult } from '~/entity/BacktestResult'
 import type { BacktestSummary } from '~/entity/BacktestSummary'
 watch(selectedTab, (newTab) => {
     console.log(`Selected tab changed to: ${newTab}`)
+
 }, { immediate: true })
+
+
 
 </script>
 
