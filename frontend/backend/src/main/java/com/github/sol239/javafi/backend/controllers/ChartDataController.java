@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.databind.type.LogicalType.DateTime;
@@ -30,27 +31,21 @@ public class ChartDataController {
     @GetMapping("/betweendata")
     public List<ChartDTO> getDataBetween(@RequestParam String table, @RequestParam String id1,
                                          @RequestParam String id2) {
-
         System.out.println("Fetching last " + ROW_COUNT + " rows from table: " + table +
                 " between ids: " + id1 + " and " + id2  );
 
+        List<Map<String, Object>> rows = csvService.getDataFromTo(table, ROW_COUNT, id1, id2);
         List<ChartDTO> result = new ArrayList<>();
-        try {
-            ResultSet rs = csvService.getRowsFromTo(table, ROW_COUNT, id1, id2);
-            while (rs != null && rs.next()) {
-                long id = rs.getLong("id");
-                long timestamp = rs.getLong("timestamp");
-                double open = rs.getDouble("open");
-                double high = rs.getDouble("high");
-                double low = rs.getDouble("low");
-                double close = rs.getDouble("close");
-                double volume = rs.getDouble("volume");
-                LocalDateTime date = rs.getObject("date", LocalDateTime.class);
-                result.add(new ChartDTO(id, timestamp, open, high, low, close, volume, date));
-            }
-        } catch (Exception e) {
-            System.out.println("Error fetching data from table: " + table);
-            e.printStackTrace();
+        for (Map<String, Object> row : rows) {
+            long id = ((Number) row.get("id")).longValue();
+            long timestamp = ((Number) row.get("timestamp")).longValue();
+            double open = ((Number) row.get("open")).doubleValue();
+            double high = ((Number) row.get("high")).doubleValue();
+            double low = ((Number) row.get("low")).doubleValue();
+            double close = ((Number) row.get("close")).doubleValue();
+            double volume = ((Number) row.get("volume")).doubleValue();
+            LocalDateTime date = row.get("date") instanceof LocalDateTime ? (LocalDateTime) row.get("date") : null;
+            result.add(new ChartDTO(id, timestamp, open, high, low, close, volume, date));
         }
         return result;
     }

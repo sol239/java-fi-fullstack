@@ -9,6 +9,7 @@ import com.github.sol239.javafi.backend.controllers.BacktestSummary;
 import com.github.sol239.javafi.backend.utils.DataObject;
 import com.github.sol239.javafi.backend.utils.database.DBHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -44,6 +45,9 @@ public class BacktestingExecutor {
     public List<Strategy> strategies;
 
     @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
     public BacktestingExecutor(DBHandler dbHandler) {
         this.strategies = new ArrayList<>();
         this.db = dbHandler;
@@ -64,19 +68,31 @@ public class BacktestingExecutor {
      * @return True if the difference between the two dates is greater than 'n' seconds, false otherwise
      */
     public static boolean isDifferenceGreaterThan(String dateString1, String dateString2, long n) {
-        // Define the format for the date string that handles both formats (with and without microseconds)
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SSSSSS]");
+        // Ošetření různých formátů datumu
+        LocalDateTime date1 = parseFlexibleDateTime(dateString1);
+        LocalDateTime date2 = parseFlexibleDateTime(dateString2);
 
-        // Parse the strings to LocalDateTime objects
-        LocalDateTime date1 = LocalDateTime.parse(dateString1, formatter);
-        LocalDateTime date2 = LocalDateTime.parse(dateString2, formatter);
-
-        // Calculate the difference in seconds between the two dates
         Duration duration = Duration.between(date1, date2);
         long differenceInSeconds = Math.abs(duration.getSeconds());
 
-        // Return true if the difference in seconds is greater than 'n'
         return differenceInSeconds > n;
+    }
+
+    // Přidáno: Pomocná metoda pro parsování různých formátů datumu
+    private static LocalDateTime parseFlexibleDateTime(String dateString) {
+        List<DateTimeFormatter> formatters = Arrays.asList(
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SSSSSS]"),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS"),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        );
+        for (DateTimeFormatter formatter : formatters) {
+            try {
+                return LocalDateTime.parse(dateString, formatter);
+            } catch (Exception ignored) {}
+        }
+        throw new IllegalArgumentException("Unsupported date format: " + dateString);
     }
 
     /**
@@ -171,18 +187,21 @@ public class BacktestingExecutor {
         long t1 = System.currentTimeMillis();
 
         List<String> lines;
+        System.out.println("****************************************");
 
-        ResultSet rs;
+        // Změna zde: použijeme queryForList místo getResultSet
+        List<Map<String, Object>> rs;
         try {
-            rs = this.db.getResultSet(String.format("SELECT * FROM %s %s ORDER BY id", tableName, dateRestriction));
+            String query = "SELECT * FROM " + tableName + " " + dateRestriction + " ORDER BY id";
+            System.out.println("6. executing query: " + query);
+            rs = jdbcTemplate.queryForList(query);
+            System.out.println("7. query executed successfully.");
         } catch (Exception e) {
             BacktestSummary errorSummary = new BacktestSummary(0, 0, 0, 0.0, 0.0);
             return new BacktestResult(errorSummary, new ArrayList<>());
         }
 
-
         // Print used strategies
-        System.out.println("****************************************");
         System.out.println("Running backtest with strategies[" + strategies.size() + "]:");
         for (Strategy strategy : strategies) {
             System.out.println(" - " + strategy.openClause + " - " + strategy.closeClause);
@@ -198,7 +217,8 @@ public class BacktestingExecutor {
         int skipRows = 1;
         int c = 0;
         try {
-            while (rs.next()) {
+            // Změna zde: iterujeme přes List<Map<String, Object>>
+            for (Map<String, Object> row : rs) {
                 c++;
                 if (c < skipRows) {
                     continue;
@@ -206,12 +226,12 @@ public class BacktestingExecutor {
                 for (Strategy strategy : strategies) {
                     String openX = this.getStrategyColumnName(strategy, true).substring(1, this.getStrategyColumnName(strategy, true).length() - 1);
                     String closeX = this.getStrategyColumnName(strategy, false).substring(1, this.getStrategyColumnName(strategy, false).length() - 1);
-                    boolean open = rs.getBoolean(openX);
-                    boolean close = rs.getBoolean(closeX);
-                    double closePrice = rs.getDouble("close");
-                    String closeTime = rs.getString("date");
-                    long timestamp = rs.getLong("timestamp");
-                    String now = rs.getString("date");
+                    boolean open = Boolean.TRUE.equals(row.get(openX));
+                    boolean close = Boolean.TRUE.equals(row.get(closeX));
+                    double closePrice = row.get("close") instanceof Number ? ((Number) row.get("close")).doubleValue() : 0.0;
+                    String closeTime = Objects.toString(row.get("date"), "");
+                    long timestamp = row.get("timestamp") instanceof Number ? ((Number) row.get("timestamp")).longValue() : 0L;
+                    String now = Objects.toString(row.get("date"), "");
 
                     // trade closing
                     Iterator<Trade> iterator = this.openedTrades.iterator();
@@ -278,12 +298,12 @@ public class BacktestingExecutor {
                     if (open && this.openedTrades.size() < strategy.setup.maxTrades && strategy.setup.balance - strategy.setup.amount >= 0) {
                         if (!this.openedTrades.isEmpty()) {
                             if (isDifferenceGreaterThan(now, this.openedTrades.get(this.openedTrades.size() - 1).openTime, strategy.setup.delaySeconds)) {
-                                Trade newTrade = new Trade(closePrice, closePrice * (strategy.setup.takeProfit), closePrice * (strategy.setup.stopLoss), 0, (strategy.setup.amount * strategy.setup.leverage / closePrice), tableName, rs.getString("date"), "", strategy, timestamp, 0);
+                                Trade newTrade = new Trade(closePrice, closePrice * (strategy.setup.takeProfit), closePrice * (strategy.setup.stopLoss), 0, (strategy.setup.amount * strategy.setup.leverage / closePrice), tableName, closeTime, "", strategy, timestamp, 0);
                                 strategy.setup.balance -= strategy.setup.amount / closePrice;
                                 this.openedTrades.add(newTrade);
                             }
                         } else {
-                            Trade newTrade = new Trade(closePrice, closePrice * (strategy.setup.takeProfit), closePrice * (strategy.setup.stopLoss), 0, (strategy.setup.amount * strategy.setup.leverage / closePrice), tableName, rs.getString("date"), "", strategy, timestamp, 0);
+                            Trade newTrade = new Trade(closePrice, closePrice * (strategy.setup.takeProfit), closePrice * (strategy.setup.stopLoss), 0, (strategy.setup.amount * strategy.setup.leverage / closePrice), tableName, closeTime, "", strategy, timestamp, 0);
                             strategy.setup.balance -= strategy.setup.amount / closePrice;
                             this.openedTrades.add(newTrade);
                         }
@@ -314,12 +334,9 @@ public class BacktestingExecutor {
         allTrades.addAll(winningTrades);
         allTrades.addAll(loosingTrades);
 
-
         if (!saveResultPath.isEmpty()) {
             saveBacktesting(saveResultPath, allTrades);
         }
-
-
 
         return new BacktestResult(summary, allTrades);
 
@@ -424,5 +441,5 @@ public class BacktestingExecutor {
         return summaryObject;
     }
 
-}
 
+}

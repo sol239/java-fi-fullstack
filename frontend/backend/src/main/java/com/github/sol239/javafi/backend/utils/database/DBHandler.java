@@ -117,29 +117,6 @@ public class DBHandler {
         }
     }
 
-    // Safe alternative that returns data as List and properly closes connections
-    public List<Map<String, Object>> getResultSetAsList(String query) {
-        List<Map<String, Object>> result = new ArrayList<>();
-        try (Connection conn = dataSource.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
-
-            ResultSetMetaData metaData = rs.getMetaData();
-            int columnCount = metaData.getColumnCount();
-
-            while (rs.next()) {
-                Map<String, Object> row = new HashMap<>();
-                for (int i = 1; i <= columnCount; i++) {
-                    row.put(metaData.getColumnName(i), rs.getObject(i));
-                }
-                result.add(row);
-            }
-        } catch (SQLException e) {
-            System.out.println("Error executing query: " + e.getMessage());
-        }
-        return result;
-    }
-
     public String getLastId(String tableName) {
         String query = "SELECT COUNT(id) AS row_count FROM " + tableName + ";";
         try (Connection conn = dataSource.getConnection();
@@ -152,19 +129,6 @@ public class DBHandler {
             System.out.println("Error getting row count: " + e.getMessage());
         }
         return null;
-    }
-
-    // DEPRECATED: Use getDataFromToAsList instead
-    @Deprecated
-    public ResultSet getDataFromTo(String tableName, long count, String from, String to) {
-        String query = "SELECT * FROM " + tableName + " WHERE id >= '" + from + "' AND id <= '" + to + "' LIMIT " + count + ";";
-        try {
-            Connection conn = dataSource.getConnection();
-            return conn.createStatement().executeQuery(query);
-        } catch (SQLException e) {
-            System.out.println("Error creating cached result set: " + e.getMessage());
-            return null;
-        }
     }
 
     public List<ChartDataController.ChartDTO> getDataFromToAsList(String tableName, String from, String to) {

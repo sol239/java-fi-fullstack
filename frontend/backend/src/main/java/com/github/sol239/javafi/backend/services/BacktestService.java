@@ -37,12 +37,24 @@ public class BacktestService {
         Strategy strategy = new Strategy(openClause, closeClause, setup);
 
         backtestingExecutor.clearStrategies();
+        System.out.println("1. strategies cleared.");
 
         backtestingExecutor.addStrategy(strategy);
-        backtestingExecutor.createStrategiesColumns(tableName);
+        System.out.println("2. strategies added.");
 
-        backtestingExecutor.updateStrategiesColumns(tableName);   // TODO: does not have to be executed each time
+        // Also does not have to be executed each time but it is quite fast.
+        backtestingExecutor.createStrategiesColumns(tableName);
+        System.out.println("3. strategies columns created.");
+
+
+        // backtestingExecutor.updateStrategiesColumns(tableName);   // TODO: does not have to be executed each time
+        System.out.println("4. strategies columns updated.");
+
+        System.out.println("5. backtesting started.");
         BacktestResult result =  backtestingExecutor.run(tableName, setup.tradeLifeSpanSeconds, strategy.takeProfit, strategy.stopLoss, "C:/Users/David/Desktop/result.json", setup.dateRestriction);
+        System.out.println("6. backtesting finished.");
+
+
         return result;
     }
 
