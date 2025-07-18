@@ -243,6 +243,8 @@ public class BacktestingExecutor {
                             trade.closeTime = closeTime;
                             trade.closePrice = closePrice;
                             trade.PnL = (trade.closePrice * trade.amount - trade.openPrice * trade.amount) * strategy.setup.leverage * (1 - strategy.setup.fee);
+                            trade.closeReason = "stop loss";
+
                             if (closePrice >= trade.openPrice) {
                                 trade.closeTimestamp = timestamp;
                                 winningTrades.add(trade);
@@ -272,6 +274,7 @@ public class BacktestingExecutor {
                             trade.closeTime = closeTime;
                             trade.closePrice = closePrice;
                             trade.PnL = (trade.closePrice * trade.amount - trade.openPrice * trade.amount) * strategy.setup.leverage * (1 - strategy.setup.fee);
+                            trade.closeReason = "strategy close";
 
                             if (closePrice >= trade.openPrice) {
                                 trade.closeTimestamp = timestamp;
@@ -298,12 +301,12 @@ public class BacktestingExecutor {
                     if (open && this.openedTrades.size() < strategy.setup.maxTrades && strategy.setup.balance - strategy.setup.amount >= 0) {
                         if (!this.openedTrades.isEmpty()) {
                             if (isDifferenceGreaterThan(now, this.openedTrades.get(this.openedTrades.size() - 1).openTime, strategy.setup.delaySeconds)) {
-                                Trade newTrade = new Trade(closePrice, closePrice * (strategy.setup.takeProfit), closePrice * (strategy.setup.stopLoss), 0, (strategy.setup.amount * strategy.setup.leverage / closePrice), tableName, closeTime, "", strategy, timestamp, 0);
+                                Trade newTrade = new Trade(closePrice, closePrice * (strategy.setup.takeProfit), closePrice * (strategy.setup.stopLoss), 0, (strategy.setup.amount * strategy.setup.leverage / closePrice), tableName, closeTime, "", strategy, timestamp, 0, "");
                                 strategy.setup.balance -= strategy.setup.amount / closePrice;
                                 this.openedTrades.add(newTrade);
                             }
                         } else {
-                            Trade newTrade = new Trade(closePrice, closePrice * (strategy.setup.takeProfit), closePrice * (strategy.setup.stopLoss), 0, (strategy.setup.amount * strategy.setup.leverage / closePrice), tableName, closeTime, "", strategy, timestamp, 0);
+                            Trade newTrade = new Trade(closePrice, closePrice * (strategy.setup.takeProfit), closePrice * (strategy.setup.stopLoss), 0, (strategy.setup.amount * strategy.setup.leverage / closePrice), tableName, closeTime, "", strategy, timestamp, 0, "");
                             strategy.setup.balance -= strategy.setup.amount / closePrice;
                             this.openedTrades.add(newTrade);
                         }
@@ -369,6 +372,7 @@ public class BacktestingExecutor {
                 //System.out.println("CLOSING - TIME LIMIT");
                 trade.closeTime = closeTime;
                 trade.closePrice = closePrice;
+                trade.closeReason = "trade lifespan";
                 trade.PnL = (trade.closePrice * trade.amount - trade.openPrice * trade.amount) * setup.leverage * (1 - setup.fee);
                 if (closePrice >= trade.openPrice) {
                     // TODO: this is not correct.

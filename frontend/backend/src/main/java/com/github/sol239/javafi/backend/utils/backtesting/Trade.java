@@ -66,6 +66,11 @@ public class Trade {
     public long closeTimestamp;
 
     /**
+     * The reason for closing the trade, e.g. "take profit", "stop loss", "manual close", etc.
+     */
+    public String closeReason;
+
+    /**
      * Constructor for Trade
      * @param takePrice the price at which the trade is desired to be closed.
      * @param stopPrice the price at which the trade is desired to be stopped. Stop price should be lower than the open and take prices.
@@ -78,7 +83,7 @@ public class Trade {
      * @param openTimestamp the timestamp at which the trade was opened.
      * @param closeTimestamp the timestamp at which the trade was closed.
      */
-    public Trade(double openPrice, double takePrice, double stopPrice, double closePrice, double amount, String assetName, String openTime, String closeTime, Strategy strategy, long openTimestamp, long closeTimestamp) {
+    public Trade(double openPrice, double takePrice, double stopPrice, double closePrice, double amount, String assetName, String openTime, String closeTime, Strategy strategy, long openTimestamp, long closeTimestamp, String closeReason) {
         this.openPrice = openPrice;
         this.takePrice = takePrice;
         this.stopPrice = stopPrice;
@@ -90,6 +95,7 @@ public class Trade {
         this.strategy = strategy;
         this.openTimestamp = openTimestamp;
         this.closeTimestamp = closeTimestamp;
+        this.closeReason = closeReason;
     }
 
     /**
@@ -107,6 +113,7 @@ public class Trade {
                 "openTime = " + openTime + "\n" +
                 "closeTime = " + closeTime + "\n" +
                 "openTimestamp = " + openTimestamp + "\n" +
-                "closeTimestamp = " + closeTimestamp;
+                "closeTimestamp = " + closeTimestamp + "\n" +
+                "closeReason = " + closeReason;
     }
 }
