@@ -61,26 +61,52 @@ const columns: TableColumn<User>[] = [
   { id: 'action' }
 ]
 
-function getDropdownActions(user: User): DropdownMenuItem[][] {
-  return [
-    [
-      {
-        label: 'Copy user Id',
-        icon: 'i-lucide-copy',
-        onSelect: () => {
-          copy(user.id.toString())
-          toast.add({
-            title: 'User ID copied to clipboard!',
-            color: 'success',
-            icon: 'i-lucide-circle-check'
-          })
-        }
+function getDropdownActions(user: User): DropdownMenuItem[] {
+  const actions: DropdownMenuItem[] = [
+    {
+      label: 'Copy user Id',
+      icon: 'i-lucide-copy',
+      onSelect: () => {
+        copy(user.id.toString())
+        toast.add({
+          title: 'User ID copied to clipboard!',
+          color: 'success',
+          icon: 'i-lucide-circle-check'
+        })
       }
-    ],
-    [
+    }
+  ]
+
+  if (!user.roles.includes('ADMIN')) {
+    actions.push(
       {
-        label: 'Edit',
-        icon: 'i-lucide-edit'
+        label: user.enabled ? 'Disable' : 'Enable',
+        icon: 'i-lucide-power',
+        onSelect: async () => {
+          const newStatus = !user.enabled
+          const config = useRuntimeConfig()
+          const backendBase = config.public.backendBase
+          const url = `${backendBase}/api/users/${user.id}/${newStatus ? 'enable' : 'disable'}`
+
+          try {
+            await $fetch(url, {
+              method: 'POST',
+              credentials: 'include'
+            })
+            user.enabled = newStatus
+            toast.add({
+              title: `User ${newStatus ? 'enabled' : 'disabled'} successfully`,
+              color: 'success',
+              icon: 'i-lucide-circle-check'
+            })
+          } catch (error) {
+            toast.add({
+              title: `Failed to ${newStatus ? 'enable' : 'disable'} user`,
+              color: 'error',
+              icon: 'i-lucide-alert-triangle'
+            })
+          }
+        }
       },
       {
         label: 'Delete',
@@ -115,8 +141,10 @@ function getDropdownActions(user: User): DropdownMenuItem[][] {
           }
         }
       }
-    ]
-  ]
+    )
+  }
+
+  return actions
 }
 </script>
 
@@ -133,13 +161,13 @@ function getDropdownActions(user: User): DropdownMenuItem[][] {
       </div>
     </template>
     <template #enabled-cell="{ row }">
-      <UBadge>
+      <UBadge :color="row.original.enabled ? 'success' : 'error'">
         {{ row.original.enabled ? 'Enabled' : 'Disabled' }}
       </UBadge>
     </template>
     <template #roles-cell="{ row }">
       <div class="flex flex-wrap gap-1">
-        <UBadge v-for="role in row.original.roles" :key="role">
+        <UBadge :color="row.original.enabled ? 'success' : 'error'" v-for="role in row.original.roles" :key="role">
           {{ role }}
         </UBadge>
       </div>
