@@ -4,6 +4,7 @@ import type { TableColumn, DropdownMenuItem } from '@nuxt/ui'
 import { useClipboard } from '@vueuse/core'
 import { User } from '~/entity/User'
 import { useUsersStore } from '#imports'
+import ResetPasswordForm from '@/components/admin/ResetPasswordForm.vue'
 
 const usersStore = useUsersStore()
 const { users } = storeToRefs(usersStore)
@@ -58,6 +59,7 @@ const columns: TableColumn<User>[] = [
   { accessorKey: 'username', header: 'Username' },
   { accessorKey: 'enabled', header: 'Enabled' },
   { accessorKey: 'roles', header: 'Roles' },
+  { id: 'resetPassword', header: 'Reset Password' }, // new column
   { id: 'action' }
 ]
 
@@ -171,6 +173,14 @@ function getDropdownActions(user: User): DropdownMenuItem[] {
           {{ role }}
         </UBadge>
       </div>
+    </template>
+    <template #resetPassword-cell="{ row }">
+      <UPopover>
+        <UButton variant="outline">Reset Password</UButton>
+        <template #content>
+          <ResetPasswordForm :userId="row.original.id" />
+        </template>
+      </UPopover>
     </template>
     <template #action-cell="{ row }">
       <UDropdownMenu :items="getDropdownActions(row.original)">
