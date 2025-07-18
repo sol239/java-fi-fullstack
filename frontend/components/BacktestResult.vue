@@ -9,6 +9,9 @@ const { backtestResult } = storeToRefs(backtestResultStore)
 // Parse summary from result string
 const summary = computed(() => {
   const result = backtestResult.value?.summary
+
+  console.log('BT RESULT:', backtestResult.value?.allTrades  )
+
   if (!result) return null
   return {
     winning: result.winningTradesCount,
@@ -55,4 +58,6 @@ const summary = computed(() => {
       </div>
     </div>
   </UCard>
+
+  <TradeResultList :trades="backtestResult.value?.allTrades" />
 </template>

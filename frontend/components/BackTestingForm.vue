@@ -85,6 +85,7 @@ function toTradeResultArray(raw: any[]): TradeResult[] {
     },
     openTimestamp: trade.openTimestamp,
     closeTimestamp: trade.closeTimestamp,
+    closeReason: trade.closeReason,
   }));
 }
 

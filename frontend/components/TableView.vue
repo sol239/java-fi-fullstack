@@ -1,16 +1,3 @@
-<template>
-  <!-- TODO: Fix height - it has to be automatic -->
-  <UButton color="primary" @click="ch.showMarkers()">Show Markers</UButton>
-  <div v-if="selectedView === 'chart'" ref="chartContainer" style="width: auto; height: 600px; margin-top: 20px;"></div>
-
-  <div v-else>
-    <UTable :data="data" class="flex-1" />
-
-  </div>
-
-
-</template>
-
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import * as LightweightCharts from 'lightweight-charts'
@@ -19,27 +6,6 @@ const backtestResultStore = useBacktestResultStore()
 const { backtestResult } = storeToRefs(backtestResultStore)
 
 
-// TODO: implement switcher
-const selectedView = ref('chart')
-
-function dedupeAndSortChartData(data) {
-
-
-
-  // Remove duplicates by time
-  const seen = new Set();
-  const filtered = data.filter(item => {
-    if (seen.has(item.time)) return false;
-    seen.add(item.time);
-    console.log("Dedupe and sort chart data:", data);
-
-    return true;
-  });
-  // Sort ascending by time
-  console.log("Dedupe and sort chart data:", data);
-
-  return filtered.sort((a, b) => a.time - b.time);
-}
 class Datafeed {
   constructor() {
     this._earliestId = 0;
@@ -332,9 +298,21 @@ watch(() => selectedTableStore.selectedTable, async (newTableName) => {
     ch.addMarkers(); // Add markers for the new table
     // Nastav data do grafu
     await ch.setSeriesData(200);
+
+    // Fetch table data for UTable when chartView is false
+    data.value = await fetchChartData()
   }
 }, { immediate: true })
 
+const chartView = ref(true)
+const data = ref([]) // <-- Add reactive data for table
+
+watch(chartView, async (val) => {
+  if (!val) {
+    // When switching to table view, fetch data
+    data.value = await fetchChartData()
+  }
+})
 
 async function fetchChartData() {
   const currentTableName = selectedTableStore.selectedTable
@@ -372,4 +350,21 @@ async function fetchChartData() {
 }
 
 
+
 </script>
+
+<template>
+  <UButton color="primary" @click="ch.showMarkers()">Show Markers</UButton>
+
+  <!-- TODO: Add switch for chart/table view -->
+  <!-- <USwitch v-model="chartView" /> -->
+
+
+
+  <div v-if="chartView" ref="chartContainer" style="width: auto; height: 600px; margin-top: 20px;"></div>
+
+  <div v-else>
+    <UTable :data="data" class="flex-1" />
+  </div>
+
+</template>

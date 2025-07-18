@@ -13,4 +13,5 @@ export interface TradeResult {
   strategy: TradeStrategy;
   openTimestamp: number;
   closeTimestamp: number;
+  closeReason: string;
 }
