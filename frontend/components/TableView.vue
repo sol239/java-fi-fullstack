@@ -14,7 +14,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import * as LightweightCharts from 'lightweight-charts'
-import { useSelectedTableStore } from '@/stores/selectedTable'
+import { useSelectedTableStore } from '~/stores/useSelectedTableStore'
 const backtestResultStore = useBacktestResultStore()
 const { backtestResult } = storeToRefs(backtestResultStore)
 

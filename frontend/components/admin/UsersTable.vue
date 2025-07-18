@@ -81,7 +81,36 @@ function getDropdownActions(user: User): DropdownMenuItem[][] {
       {
         label: 'Delete',
         icon: 'i-lucide-trash',
-        color: 'error'
+        color: 'error',
+        onSelect: async () => {
+          const config = useRuntimeConfig()
+          const backendBase = config.public.backendBase
+          const url = `${backendBase}/api/users/delete/${user.id}`
+
+          console.log('Deleting user:', user.id, 'from URL:', url)
+
+          const { error } = await useFetch(url, {
+            method: 'DELETE',
+            credentials: 'include'
+          })
+
+          if (error.value) {
+            toast.add({
+              title: 'Failed to delete user',
+              color: 'error',
+              icon: 'i-lucide-alert-triangle'
+            })
+          } else {
+            // Update the users list by removing the deleted user
+            data.value = data.value.filter(u => u.id !== user.id)
+            toast.add({
+              title: 'User deleted successfully',
+              color: 'success',
+              icon: 'i-lucide-circle-check'
+            })
+          }
+
+        }
       }
     ]
   ]

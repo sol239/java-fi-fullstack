@@ -70,7 +70,7 @@
 </template>
 
 <script setup>
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore } from '~/stores/useAuthStore'
 const authStore = useAuthStore()
 authStore.reset()
 

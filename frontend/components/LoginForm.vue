@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '@nuxt/ui'
-import { useAuthStore } from '@/stores/auth' // <-- import the store
+import { useAuthStore } from '~/stores/useAuthStore' // <-- import the store
 
 const state = reactive({
     username: '',

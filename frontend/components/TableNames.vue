@@ -24,8 +24,8 @@
 </template>
 
 <script setup>
-import { useTableNamesStore } from '~/stores/tableNames'
-import { useSelectedTableStore } from '~/stores/selectedTable' // <-- import the store
+import { useTableNamesStore } from '~/stores/useTableNamesStore'
+import { useSelectedTableStore } from '~/stores/useSelectedTableStore' // <-- import the store
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { watch } from 'vue' // <-- import watch
