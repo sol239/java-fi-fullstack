@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import type { TableColumn, DropdownMenuItem } from '@nuxt/ui'
 import { useClipboard } from '@vueuse/core'
 import { User } from '~/entity/User'
-import { useUsersStore   } from '#imports'
+import { useUsersStore } from '#imports'
 
 const usersStore = useUsersStore()
 const { users } = storeToRefs(usersStore)
@@ -91,29 +91,28 @@ function getDropdownActions(user: User): DropdownMenuItem[][] {
           const backendBase = config.public.backendBase
           const url = `${backendBase}/api/users/delete/${user.id}`
 
-          console.log('Deleting user:', user.id, 'from URL:', url)
-
-          const { error } = await useFetch(url, {
-            method: 'DELETE',
-            credentials: 'include'
-          })
-
-          if (error.value) {
-            toast.add({
-              title: 'Failed to delete user',
-              color: 'error',
-              icon: 'i-lucide-alert-triangle'
+          try {
+            await $fetch(url, {
+              method: 'DELETE',
+              credentials: 'include'
             })
-          } else {
-            // Update the users list by removing the deleted user
-            data.value = data.value.filter(u => u.id !== user.id)
+            usersStore.deleteUser(user.id)
+            console.log("DELETE USER:", user.id )
             toast.add({
               title: 'User deleted successfully',
               color: 'success',
               icon: 'i-lucide-circle-check'
             })
-          }
+            
+            console.log("USER STORE AFTER DELETE:", usersStore.users)
 
+          } catch (error) {
+            toast.add({
+              title: 'Failed to delete user',
+              color: 'error',
+              icon: 'i-lucide-alert-triangle'
+            })
+          }
         }
       }
     ]

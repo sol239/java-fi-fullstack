@@ -9,5 +9,14 @@ export const useUsersStore = defineStore('users', () => {
     users.value = newUsers
   }
 
-  return { users, setUsers }
+  function deleteUser(userId: string) {
+    for (let i = 0; i < users.value.length; i++) {
+      if (users.value[i].id === Number(userId)) {
+        users.value.splice(i, 1)
+        break
+      }
+    }
+  }
+
+  return { users, setUsers, deleteUser }
 })
