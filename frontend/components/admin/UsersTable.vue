@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { TableColumn, DropdownMenuItem } from '@nuxt/ui'
 import { useClipboard } from '@vueuse/core'
 import { User } from '~/entity/User'
+import { useUsersStore   } from '#imports'
+
+const usersStore = useUsersStore()
+const { users } = storeToRefs(usersStore)
 
 const { copy } = useClipboard()
 const toast = useToast()
@@ -11,7 +15,7 @@ const config = useRuntimeConfig()
 const backendBase = config.public.backendBase
 const url = `${backendBase}/api/users`
 
-const data = ref<User[]>([]);
+const data = computed(() => users.value)
 
 async function fetchUsers() {
   try {
@@ -23,7 +27,7 @@ async function fetchUsers() {
     if (fetchError.value) throw fetchError.value;
 
     // Map raw data to User instances
-    const users = (fetchData.value as any[]).map((u) =>
+    const usersArr = (fetchData.value as any[]).map((u) =>
       new User(
         u.id,
         u.username,
@@ -32,9 +36,9 @@ async function fetchUsers() {
         typeof u.roles === 'string' ? u.roles.split(',') : u.roles
       )
     );
-    data.value = users;
+    usersStore.setUsers(usersArr);
 
-    console.log('User data:', users);
+    console.log('User data:', usersArr);
   } catch (error) {
     console.error('Error fetching users:', error);
     toast.add({

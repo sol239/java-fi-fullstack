@@ -1,5 +1,8 @@
 <script setup lang="ts">
 
+import { User } from '~/entity/User'
+import { useUsersStore } from '#imports'
+import { storeToRefs } from 'pinia'
 
 const form = ref({
     username: '',
@@ -9,13 +12,15 @@ const form = ref({
 })
 
 const toast = useToast()
+const usersStore = useUsersStore()
+const { users } = storeToRefs(usersStore)
 
 async function submitForm() {
     const config = useRuntimeConfig()
     const backendBase = config.public.backendBase
     const url = `${backendBase}/api/users/add`
 
-    const { data, error } = await useFetch(url, {
+    const { data, error } = await useFetch<User>(url, {
         method: 'POST',
         body: form.value,
         credentials: 'include'
@@ -33,10 +38,19 @@ async function submitForm() {
             color: 'success',
             icon: 'i-lucide-circle-check'
         })
+        // Add the new user to the store
+        const u = data.value
+        if (u) {
+            const newUser = new User(
+                u.id,
+                u.username,
+                u.password,
+                u.enabled,
+                u.roles
+            )
+            usersStore.users.push(newUser)
+        }
     }
-
-    console.log('Response:', data.value, 'Error:', error.value)
-
 }
 
 </script>
