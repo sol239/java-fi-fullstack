@@ -4,9 +4,8 @@ import com.github.sol239.javafi.backend.entity.User;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,5 +39,35 @@ public class UsersController {
 
         return userRepository.findAll();
     }
+
+    @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteUser(@PathVariable Long id) {
+        System.out.println("Deleting user with ID: " + id);
+        userRepository.deleteById(id);
+    }
+    @PostMapping("/add")
+    @PreAuthorize("hasRole('ADMIN')")
+    public User addUser(@RequestBody User user) {
+        System.out.println("Adding user: " + user.getUsername());
+        return userRepository.save(user);
+    }
+
+    @PostMapping("/{id}/enable")
+    @PreAuthorize("hasRole('ADMIN')")
+    public User enableUser(@PathVariable Long id) {
+        User user = userRepository.findById(id).orElseThrow();
+        user.setEnabled(true);
+        return userRepository.save(user);
+    }
+
+    @PostMapping("/{id}/disable")
+    @PreAuthorize("hasRole('ADMIN')")
+    public User disableUser(@PathVariable Long id) {
+        User user = userRepository.findById(id).orElseThrow();
+        user.setEnabled(false);
+        return userRepository.save(user);
+    }
+
 
 }
