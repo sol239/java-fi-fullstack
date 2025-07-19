@@ -40,8 +40,8 @@ const form = ref({
     // Strategy fields
     openClause: 'WHERE rsi_14_ins_ <= 30',
     closeClause: 'WHERE rsi_14_ins_ >= 70',
-    stopLossEnabled: false,
-    takeProfitEnabled: true
+    stopLossEnabled: true,
+    takeProfitEnabled: false
 })
 
 const isRunning = ref(false)
