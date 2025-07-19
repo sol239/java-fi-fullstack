@@ -25,7 +25,7 @@ const summary = computed(() => {
 
 <template>
   <UCard>
-    <div v-if="summary" class="grid grid-cols-2 gap-4 mb-4">
+    <div v-if="summary !== null" class="grid grid-cols-2 gap-4 mb-4">
       <div class="flex flex-col items-center justify-center p-2 rounded bg-green-50">
         <span class="text-green-600 text-lg font-bold">
           <i class="i-lucide-trophy mr-1"></i> {{ summary.winning }}
@@ -59,5 +59,5 @@ const summary = computed(() => {
     </div>
   </UCard>
 
-  <TradeResultList :trades="backtestResult.value?.allTrades" />
+  <TradeResultList/>
 </template>

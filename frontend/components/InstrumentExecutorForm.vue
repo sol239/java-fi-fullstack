@@ -3,11 +3,13 @@ import type { FormError, FormSubmitEvent } from '@nuxt/ui'
 import type { TabsItem } from '@nuxt/ui'
 import { ref, reactive } from 'vue'
 import { useSelectedTableStore } from '#imports'
+import { storeToRefs } from 'pinia'
 
 const selectedTableStore = useSelectedTableStore()
-const tableName = selectedTableStore.selectedTable
+const { selectedTable } = storeToRefs(selectedTableStore)
 
-console.log('Selected table:', tableName)
+console.log('Selected table:', selectedTable.value)
+const toast = useToast()
 
 const state = reactive({
   instrumentConsoleString: 'rsi:14',
@@ -33,20 +35,22 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
   message.value = ''
   error.value = ''
   isRunning.value = true
-  console.log("Running instrument with data:\nConsole String:", state.instrumentConsoleString, "\nTable Name:", tableName)
+  console.log("Running instrument with data:\nConsole String:", state.instrumentConsoleString, "\nTable Name:", selectedTable.value)
 
   try {
     const res = await $fetch(url, {
       method: 'POST',
       body: new URLSearchParams({
         instrumentConsoleString: state.instrumentConsoleString,
-        tableName: tableName
+        tableName: selectedTable.value
       }),
       credentials: 'include'
     })
     message.value = 'Instrument executed successfully.'
+    toast.add({ title: message.value, color: 'primary', icon: 'i-heroicons-check-circle', duration: 1500 })
   } catch (err: any) {
     error.value = 'Instrument execution failed: ' + (err?.message || err)
+    toast.add({ title: error.value, color: 'warning', icon: 'i-heroicons-exclamation-triangle', duration: 1500 })
     console.error('Instrument error:', err)
   } finally {
     isRunning.value = false
@@ -75,22 +79,6 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
         >
           {{ isRunning ? "Running..." : "Run Instrument" }}
         </UButton>
-      </div>
-      <div v-if="message || error" class="mt-4">
-        <UAlert
-          v-if="message"
-          icon="i-heroicons-check-circle"
-          color="green"
-          variant="soft"
-          :title="message"
-        />
-        <UAlert
-          v-if="error"
-          icon="i-heroicons-exclamation-triangle"
-          color="red"
-          variant="soft"
-          :title="error"
-        />
       </div>
     </div>
   </UForm>

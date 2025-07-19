@@ -5,6 +5,7 @@ import { useSelectedTableStore } from '~/stores/useSelectedTableStore'
 const backtestResultStore = useBacktestResultStore()
 const { backtestResult } = storeToRefs(backtestResultStore)
 
+const markersVisible = ref(false)
 
 class Datafeed {
   constructor() {
@@ -40,20 +41,31 @@ class Datafeed {
       console.log("No more data to fetch (lastIndex1 reached).");
       return this._data;
     }
+
+
+    console.log("FETCHING: ", this._earliestId, numberOfExtraBars)
     const historicalData = await functionFetchData(this._earliestId, numberOfExtraBars);
+    console.log("Historical data length:", historicalData.length);
+    /*
     if (historicalData.length === 0) {
+      console.log("REACHED 1")
       window.lastIndex1Reached = true;
       console.log("Set lastIndex1Reached = true");
+      console.log(this.earliestId)
       return this._data;
     }
+      */
     this._data = [...historicalData, ...this._data];
     this.removeDuplicates();
     this._earliestId = historicalData[0].id;
-    // If _earliestId is at the last index, set the flag
+    /*
     if (this._earliestId <= 1) { // replace 1 with your actual lastIndex1 value if needed
+      cosole.log("REACHED 2")
       window.lastIndex1Reached = true;
       console.log("Set lastIndex1Reached = true");
-    }
+      console.log(this.earliestId)
+
+    }*/
     return this._data;
   }
 }
@@ -67,6 +79,7 @@ class Chart {
     this.datafeed = new Datafeed();
     this.lastIndex = "0";
     this.markers = [];
+    this.markerPrimitive = null;
   }
 
   clearMarkers() {
@@ -105,10 +118,18 @@ class Chart {
   }
 
   showMarkers() {
-    // TODO: make the markers work with infinity loading
-    console.log("Markers:", this.markers);
-    LightweightCharts.createSeriesMarkers(this.series, this.markers);
-    this.chart.timeScale().fitContent();
+    if (markersVisible.value) {
+      this.markerPrimitive.setMarkers([]);
+      this.markerPrimitive.detach();
+
+      markersVisible.value = false
+    } else {
+      // Only show markers that fit in the range of loaded data
+      const loadedTimes = new Set(this.datafeed.getData().map(bar => bar.time))
+      const visibleMarkers = this.markers.filter(m => loadedTimes.has(m.time))
+      this.markerPrimitive = LightweightCharts.createSeriesMarkers(this.series, visibleMarkers)
+      markersVisible.value = true
+    }
   }
 
   activateInfinity() {
@@ -122,8 +143,7 @@ class Chart {
 
         setTimeout(() => {
           this.series.setData(data);
-          //this.showMarkers();
-        }, 200);
+        }, 0);
       }
     });
   }
@@ -192,10 +212,8 @@ class Chart {
 }
 
 async function functionFetchData(beforeId, count = 50) {
-
   beforeId = Math.ceil(beforeId);
   count = Math.ceil(count);
-
 
   const currentTableName = selectedTableStore.selectedTable
   const encodedTableName = encodeURIComponent(currentTableName)
@@ -203,30 +221,30 @@ async function functionFetchData(beforeId, count = 50) {
   const backendBase = config.public.backendBase || 'http://localhost:8080'
   const url = `${backendBase}/api/betweendata?table=${encodedTableName}&id1=${beforeId - count}&id2=${beforeId}`
 
-  // Use $fetch instead of useFetch
-  const data = await $fetch(url, {
-    credentials: 'include'
-  })
+  try {
+    const data = await $fetch(url, {
+      credentials: 'include'
+    })
 
+    const chartData = (data || []).map(item => ({
+      id: item.id,
+      time: item.timestamp,
+      open: item.open,
+      high: item.high,
+      low: item.low,
+      close: item.close
+    })).sort((a, b) => a.time - b.time)
 
-  const chartData = (data || []).map(item => ({
-    id: item.id,
-    time: item.timestamp,
-    open: item.open,
-    high: item.high,
-    low: item.low,
-    close: item.close
-  })).sort((a, b) => a.time - b.time)
-
-  return chartData
+    return chartData
+  } catch (error) {
+    console.error('Error fetching data:', error)
+    return []
+  }
 }
 
 const selectedTableStore = useSelectedTableStore()
 const tableName = selectedTableStore.selectedTable
-console.log('Selected table:', tableName)
-
 const chartContainer = ref(null)
-
 const ch = new Chart(chartContainer)
 
 let lastIndex = "0";
@@ -248,7 +266,10 @@ async function getTableLastIndex(tableName) {
 }
 
 onMounted(async () => {
+  window.lastIndex1Reached = false; // Reset flag on mount
+
   if (chartContainer.value) {
+
 
     lastIndex = await getTableLastIndex(tableName)
     console.log('Last index for table:', lastIndex)
@@ -268,9 +289,10 @@ onMounted(async () => {
     ch.setDatafeed(datafeed);
     ch.setLastIndex(lastIndex)
     ch.datafeed.setEarliestId(Number(lastIndex))
+    ch.activateInfinity()
+
     await ch.setSeriesData(200) // <-- await here
     ch.addMarkers()
-    ch.activateInfinity()
 
     //const chartData = await ch.datafeed.getBars(200)
 
@@ -279,12 +301,12 @@ onMounted(async () => {
 
 watch(() => selectedTableStore.selectedTable, async (newTableName) => {
   if (newTableName) {
-    console.log("SWITCHING TABLE TO:", newTableName)
-    console.log('Last index for new table:', lastIndex)
+
 
     lastIndex = await getTableLastIndex(newTableName)
     window.lastIndex1Reached = false; // reset global flag
-
+    console.log("SWITCHING TABLE TO:", newTableName)
+    console.log('Last index for new table:', lastIndex)
     // Vytvoř nový datafeed a nastav ho do grafu
     const datafeed = new Datafeed();
     ch.setDatafeed(datafeed);
@@ -354,7 +376,16 @@ async function fetchChartData() {
 </script>
 
 <template>
-  <UButton color="primary" @click="ch.showMarkers()">Show Markers</UButton>
+  <UButton
+    color="primary"
+    @click="ch.showMarkers()"
+    :icon="markersVisible ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
+    :variant="markersVisible ? 'outline' : 'solid'"
+    size="md"
+    class="mb-2"
+  >
+    {{ markersVisible ? 'Hide Markers' : 'Show Markers' }}
+  </UButton>
 
   <!-- TODO: Add switch for chart/table view -->
   <!-- <USwitch v-model="chartView" /> -->
