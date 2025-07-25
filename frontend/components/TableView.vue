@@ -127,6 +127,8 @@ class Chart {
       // Only show markers that fit in the range of loaded data
       const loadedTimes = new Set(this.datafeed.getData().map(bar => bar.time))
       const visibleMarkers = this.markers.filter(m => loadedTimes.has(m.time))
+      console.log("Visible markers count:", visibleMarkers.length)
+      console.log("All markers count:", this.markers.length)
       this.markerPrimitive = LightweightCharts.createSeriesMarkers(this.series, visibleMarkers)
       markersVisible.value = true
     }

@@ -51,7 +51,7 @@ async function submitForm() {
   <UForm :state="form" @submit.prevent="submitForm">
     <UInput
       v-model="form.password"
-      placeholder="Password"
+      placeholder="New password"
       :type="show ? 'text' : 'password'"
       :ui="{ trailing: 'pe-1' }"
       required
