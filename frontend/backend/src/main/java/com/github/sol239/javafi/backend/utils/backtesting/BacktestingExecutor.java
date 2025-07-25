@@ -244,6 +244,7 @@ public class BacktestingExecutor {
                             trade.closePrice = closePrice;
                             trade.PnL = (trade.closePrice * trade.amount - trade.openPrice * trade.amount) * strategy.setup.leverage * (1 - strategy.setup.fee);
                             trade.closeReason = "stop loss";
+                            // TODO: Take Profit / Stop Loss checkbox
 
                             if (closePrice >= trade.openPrice) {
                                 trade.closeTimestamp = timestamp;
@@ -259,10 +260,13 @@ public class BacktestingExecutor {
                             continue;
                         }
 
+                        // TODO: Take Profit / Stop Loss checkbox
+
                         // It is generally good to specify that:
                         // - current close must be > than trade.open * (1 + takeProfit)
                         // - current close must be > than trade.open * (1 + fee)
                         if (close) {
+                            // TODO: Take Profit / Stop Loss checkbox
 
                             // If takeProfit is set, takePrice must reached to close the trade.
                             if (takeProfit) {

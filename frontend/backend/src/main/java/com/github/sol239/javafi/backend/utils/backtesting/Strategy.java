@@ -43,10 +43,12 @@ public class Strategy {
      * @param closeClause SQL WHERE clause for closing a trade.
      * @param setup Setup for the strategy.
      */
-    public Strategy(String openClause, String closeClause,  Setup setup) {
+    public Strategy(String openClause, String closeClause, boolean takeProfit, boolean stopLoss,  Setup setup) {
         this.openClause = openClause;
         this.closeClause = closeClause;
         this.setup = setup;
+        this.takeProfit = takeProfit;
+        this.stopLoss = stopLoss;
     }
 
     /**

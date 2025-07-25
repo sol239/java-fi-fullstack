@@ -34,7 +34,7 @@ public class BacktestService {
 
         double riskReward = 1;
         Setup setup = new Setup(Double.parseDouble(balance), Double.parseDouble(leverage), Double.parseDouble(fee), Double.parseDouble(takeProfit), Double.parseDouble(stopLoss), Double.parseDouble(amount), riskReward, Integer.parseInt(maxTrades), Integer.parseInt(delaySeconds), dateRestriction, Integer.parseInt(tradeLifeSpanSeconds));
-        Strategy strategy = new Strategy(openClause, closeClause, setup);
+        Strategy strategy =     new Strategy(openClause, closeClause, Boolean.parseBoolean(takeProfitEnabled), Boolean.parseBoolean(stopLossEnabled),  setup);
 
         backtestingExecutor.clearStrategies();
         System.out.println("1. strategies cleared.");
@@ -47,7 +47,7 @@ public class BacktestService {
         System.out.println("3. strategies columns created.");
 
 
-        // backtestingExecutor.updateStrategiesColumns(tableName);   // TODO: does not have to be executed each time
+        backtestingExecutor.updateStrategiesColumns(tableName);   // TODO: does not have to be executed each time
         System.out.println("4. strategies columns updated.");
 
         System.out.println("5. backtesting started.");

@@ -296,6 +296,27 @@ public class DBHandler {
         }
     }
 
+    /**
+     * Creates an index on the specified column of the specified table.
+     * @param tableName the name of the table
+     * @param columnName the name of the column to index
+     */
+    public void createIndex(String tableName, String columnName) {
+        String sql = "CREATE INDEX IF NOT EXISTS idx_" + columnName + " ON " + tableName + " (" + columnName + ");";
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute(sql);
+            System.out.println("Index created successfully.");
+        } catch (SQLException e) {
+            System.out.println("Error creating index: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Inserts data from a CSV file into the specified table.
+     * @param tableName the name of the table to insert data into
+     * @param csvInputStream the InputStream of the CSV file
+     */
     public void insertCsvData(String tableName, InputStream csvInputStream) {
         try (Connection conn = dataSource.getConnection();
              BufferedReader br = new BufferedReader(new InputStreamReader(csvInputStream))) {
