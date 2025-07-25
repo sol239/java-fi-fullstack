@@ -4,6 +4,11 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   vite: {},
 
+  devServer: {
+    port: Number(process.env.PORT) || 3000,
+    host: '0.0.0.0'
+  },
+
   css: ['~/app/assets/css/main.css'],
   sourcemap: false,
 

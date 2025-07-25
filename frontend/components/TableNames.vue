@@ -17,7 +17,7 @@
         <UButton variant="outline" icon="i-heroicons-arrow-path" @click="refresh" :loading="pending" size="sm" />
         <USelectMenu v-model="selectedTable" :items="reactiveTableNames" class="w-48" />
         <UBadge variant="soft">
-          {{ tableNames.length }}
+          {{ length }}
         </UBadge>
       </div>
     </div>
@@ -40,6 +40,7 @@ const selectedTableStore = useSelectedTableStore()
 const { selectedTable } = storeToRefs(selectedTableStore) // <-- make selectedTable reactive
 
 const reactiveTableNames = computed(() => tableNamesStore.tableNameList)
+const length = computed(() => reactiveTableNames.value.length)
 
 const tableNamesArray = Array.isArray(tableNames.value)
   ? tableNames.value.map(String)

@@ -53,6 +53,8 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
+// Update import path to match the filename
+import { useTableNamesStore } from '~/stores/useTableNamesStore'
 
 const formState = reactive({
   tableName: ''
@@ -62,6 +64,8 @@ const selectedFile = ref(null)
 const message = ref('')
 const error = ref('')
 const isUploading = ref(false)
+
+const tableNamesStore = useTableNamesStore()
 
 const handleFileChange = (event) => {
   selectedFile.value = event.target.files[0]
@@ -87,13 +91,13 @@ const uploadCsv = async () => {
     const response = await fetch('http://localhost:8080/api/csv/upload', {
       method: 'POST',
       body: formData,
-      credentials: 'include' // <-- add this line
+      credentials: 'include'
     })
 
     const text = await response.text()
     if (response.ok) {
       message.value = text
-      // Reset form on success
+      tableNamesStore.addTableName(formState.tableName)
       formState.tableName = ''
       selectedFile.value = null
     } else {

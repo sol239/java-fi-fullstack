@@ -26,6 +26,12 @@ const { backtestResult } = storeToRefs(backtestResultStore)
                         <strong>Close Price:</strong> {{ trade.closePrice }}
                     </div>
                     <div>
+                        <strong>Take Price:</strong> {{ trade.takePrice }}
+                    </div>
+                    <div>
+                        <strong>Stop Price:</strong> {{ trade.stopPrice }}
+                    </div>
+                    <div>
                         <strong>Close Reason:</strong> {{ trade.closeReason }}
                     </div>
                     <div>
