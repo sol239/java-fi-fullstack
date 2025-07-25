@@ -7,9 +7,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 @RequestMapping("/api/backtest")
 public class BacktestController {
+    private static final Logger logger = LoggerFactory.getLogger(BacktestController.class);
 
     private final BacktestService backtestService;
 
@@ -36,9 +40,9 @@ public class BacktestController {
             @RequestParam String stopLossEnabled,
             @RequestParam String takeProfitEnabled
     ) {
-        System.out.println("Running backtest for table: " + tableName);
+        logger.info("POST:api/backtest/run BacktestController.runBacktest() called for table: {}", tableName);
         BacktestResult result = backtestService.runBackTest(
-                tableName, // This should be replaced with the actual table name if needed
+                tableName,
                 balance,
                 leverage,
                 fee,
@@ -55,7 +59,7 @@ public class BacktestController {
                 takeProfitEnabled
         );
 
-        System.out.println("Backtest result: " + result.backtestSummary());
+        logger.info("Backtest result: " + result.backtestSummary());
 
         return result;
 

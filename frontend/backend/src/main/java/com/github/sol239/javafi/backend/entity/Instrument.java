@@ -17,7 +17,10 @@ public class Instrument {
     @Column(nullable = false)
     private Long id;
 
+    @Column(length = 100, nullable = false, unique = true)
     private String name;
+
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String description;
 
 }

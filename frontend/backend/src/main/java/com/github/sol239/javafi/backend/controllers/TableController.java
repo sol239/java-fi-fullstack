@@ -1,5 +1,6 @@
 package com.github.sol239.javafi.backend.controllers;
 
+import com.github.sol239.javafi.backend.auth.AuthUtil;
 import com.github.sol239.javafi.backend.services.CsvService;
 import com.github.sol239.javafi.backend.services.TableService;
 import org.slf4j.Logger;
@@ -29,29 +30,21 @@ public class TableController {
         this.csvService = csvService;
     }
 
-
     @GetMapping
     public List<String> getTableNames() {
-
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        String username = (authentication != null) ? authentication.getName() : "anonymous";
-
-        logger.info("getTableNames from user: {}", username);
+        String username =  AuthUtil.getUsername();
 
         List<String> tableNames = tableService.getTableNames();
-
-        logger.info("{} table names returned for user: {}", tableNames.size(), username);
-
+        logger.info("GET:api/tables/ TableController.getTableNames() returned {} tables for user: {}", tableNames.size(), username);
         return tableNames;
     }
 
     @GetMapping("/last")
     public String getLastId(@RequestParam String tableName) {
-        System.out.println("getLastId called for table: " + tableName);
+
+        String username =  AuthUtil.getUsername();
         String result = csvService.getLastId(tableName);
-        System.out.println("getLastId called for table: " + tableName + " returned: " + result);
+        logger.info("GET:api/tables/last/ TableController.getLastId() returned {} table for user: {}", result, username);
         return result;
     }
 }

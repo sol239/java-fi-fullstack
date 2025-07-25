@@ -18,12 +18,25 @@ public class Chart {
     @Column(nullable = false)
     private Long id;
 
+    @Column(nullable = false)
     private Long timestamp;
+
+    @Column(nullable = false)
     private double open;
+
+    @Column(nullable = false)
     private double high;
+
+    @Column(nullable = false)
     private double low;
+
+    @Column(nullable = false)
     private double close;
+
+    @Column(nullable = false)
     private double volume;
+
+    @Column(nullable = false)
     private LocalDateTime date;
 
     @Column(columnDefinition = "TEXT")

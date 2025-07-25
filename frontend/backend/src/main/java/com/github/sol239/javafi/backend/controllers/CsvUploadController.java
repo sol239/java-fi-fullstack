@@ -17,10 +17,13 @@ import java.util.stream.Collectors;
 
 import java.io.IOException;
 import java.io.InputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/csv")
 public class CsvUploadController {
+    private static final Logger logger = LoggerFactory.getLogger(CsvUploadController.class);
 
     private final CsvService csvService;
 
@@ -35,14 +38,14 @@ public class CsvUploadController {
             @RequestParam("file") MultipartFile file) {
 
         if (file.isEmpty()) {
+            logger.warn("POST:api/csv/upload CsvUploadController.uploadCsv() - File is empty for table: {}", tableName);
             return ResponseEntity.badRequest().body("FAIL - File is empty.");
         }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = (authentication != null) ? authentication.getName() : "anonymous";
 
-
-        System.out.println("Soubor " + file.getOriginalFilename() + " byl úspěšně přijat na server. Od uživatele: " + username + ", pro tabulku: " + tableName);
+        logger.info("POST:api/csv/upload CsvUploadController.uploadCsv() - Soubor {} byl úspěšně přijat na server. Od uživatele: {}, pro tabulku: {}", file.getOriginalFilename(), username, tableName);
         List<String> roles = authentication.getAuthorities()
                 .stream()
                 .map(a -> a.getAuthority())

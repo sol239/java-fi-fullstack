@@ -7,10 +7,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/instrument")
 public class InstrumentController {
+    private static final Logger logger = LoggerFactory.getLogger(InstrumentController.class);
 
     private final InstrumentService instrumentService;
 
@@ -22,9 +25,9 @@ public class InstrumentController {
     @PostMapping("run")
     public void runInstrument(@RequestParam String instrumentConsoleString,
                               @RequestParam String tableName) {
-        System.out.println("Running instrument: " + instrumentConsoleString + " on table: " + tableName);
+        logger.info("POST:api/instrument/run InstrumentController.runInstrument() called for instrument: {} on table: {}", instrumentConsoleString, tableName);
         instrumentService.runInstrument(instrumentConsoleString, tableName);
-        System.out.println("Finished running instrument: " + instrumentConsoleString + " on table: " + tableName);
+        logger.info("Finished running instrument: {} on table: {}", instrumentConsoleString, tableName);
     }
 
 }

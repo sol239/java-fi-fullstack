@@ -7,13 +7,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.Cookie;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/logout")
 public class LogoutController {
+    private static final Logger logger = LoggerFactory.getLogger(LogoutController.class);
 
     @PostMapping
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        logger.info("POST:api/logout LogoutController.logout() called");
         // Invalidate session
         request.getSession().invalidate();
 

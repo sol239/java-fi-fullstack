@@ -14,16 +14,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.databind.type.LogicalType.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api")
 public class ChartDataController {
+    private static final Logger logger = LoggerFactory.getLogger(ChartDataController.class);
 
 
     public static final int ROW_COUNT = 200;
-
-    @Autowired
-    private ChartRepository chartRepository;
 
     @Autowired
     private CsvService csvService;
@@ -31,9 +31,7 @@ public class ChartDataController {
     @GetMapping("/betweendata")
     public List<ChartDTO> getDataBetween(@RequestParam String table, @RequestParam String id1,
                                          @RequestParam String id2) {
-        System.out.println("Fetching last " + ROW_COUNT + " rows from table: " + table +
-                " between ids: " + id1 + " and " + id2  );
-
+        logger.info("GET:api/betweendata ChartDataController.getDataBetween() called for table: {} between ids: {} and {}", table, id1, id2);
         List<Map<String, Object>> rows = csvService.getDataFromTo(table, ROW_COUNT, id1, id2);
         List<ChartDTO> result = new ArrayList<>();
         for (Map<String, Object> row : rows) {
@@ -53,9 +51,7 @@ public class ChartDataController {
 
     @GetMapping("/data")
     public List<ChartDTO> getLastRows(@RequestParam String table) {
-
-        System.out.println("Fetching last " + ROW_COUNT + " rows from table: " + table);
-
+        logger.info("GET:api/data ChartDataController.getLastRows() called for table: {}", table);
         List<ChartDTO> result = new ArrayList<>();
         try {
             ResultSet rs = csvService.getLastNRows(table, ROW_COUNT);
@@ -71,8 +67,7 @@ public class ChartDataController {
                 result.add(new ChartDTO(id, timestamp, open, high, low, close, volume, date));
             }
         } catch (Exception e) {
-            System.out.println("Error fetching data from table: " + table);
-            e.printStackTrace();
+            logger.error("Error fetching data from table: {}", table, e);
         }
         return result;
     }
