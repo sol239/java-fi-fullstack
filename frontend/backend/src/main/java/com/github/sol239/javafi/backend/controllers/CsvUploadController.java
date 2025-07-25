@@ -51,6 +51,8 @@ public class CsvUploadController {
         System.out.println("Role uživatele: " + roles);
         try (InputStream is = file.getInputStream()) {
             csvService.insertCsvData(tableName, is);
+            csvService.createIndex(tableName, "id");
+            csvService.createIndex(tableName, "DATE");
             return ResponseEntity.ok("SUCCESS - Data inserted into table: " + tableName);
         } catch (IOException e) {
             return ResponseEntity.status(500).body("FAIL - Error processing file: " + e.getMessage());

@@ -1,5 +1,6 @@
 package com.github.sol239.javafi.backend.controllers;
 
+import com.github.sol239.javafi.backend.entity.BacktestResult;
 import com.github.sol239.javafi.backend.services.BacktestService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

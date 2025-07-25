@@ -1,7 +1,6 @@
 package com.github.sol239.javafi.backend.services;
 
-import com.github.sol239.javafi.backend.controllers.BacktestResult;
-import com.github.sol239.javafi.backend.utils.DataObject;
+import com.github.sol239.javafi.backend.entity.BacktestResult;
 import com.github.sol239.javafi.backend.utils.backtesting.BacktestingExecutor;
 import com.github.sol239.javafi.backend.utils.backtesting.Setup;
 import com.github.sol239.javafi.backend.utils.backtesting.Strategy;
@@ -47,11 +46,13 @@ public class BacktestService {
         System.out.println("3. strategies columns created.");
 
 
-        backtestingExecutor.updateStrategiesColumns(tableName);   // TODO: does not have to be executed each time
+
+        // TODO: date restriction is not used, so all
+        //backtestingExecutor.updateStrategiesColumns(tableName);   // TODO: does not have to be executed each time
         System.out.println("4. strategies columns updated.");
 
         System.out.println("5. backtesting started.");
-        BacktestResult result =  backtestingExecutor.run(tableName, setup.tradeLifeSpanSeconds, strategy.takeProfit, strategy.stopLoss, "C:/Users/David/Desktop/result.json", setup.dateRestriction);
+        BacktestResult result =  backtestingExecutor.run(tableName, setup.tradeLifeSpanSeconds, strategy.takeProfit, strategy.stopLoss, "C:/Users/David/Desktop/result.json", setup.dateRestriction); // TODO: hardwired path, path can  be omitted
         System.out.println("6. backtesting finished.");
 
 

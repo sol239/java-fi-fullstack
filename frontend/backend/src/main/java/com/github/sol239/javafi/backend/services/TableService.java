@@ -4,6 +4,7 @@ import com.github.sol239.javafi.backend.utils.database.DBHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -17,7 +18,16 @@ public class TableService {
     }
 
     public List<String> getTableNames() {
-        return dbHandler.getAllTables();
+
+        // REMOVE: CHART, INSTRUMENT, USER_ROLES tables which are not OHLC tables
+        List<String> tableNames = dbHandler.getAllTables();
+        tableNames.removeIf(tableName ->
+            tableName.equalsIgnoreCase("CHART") ||
+            tableName.equalsIgnoreCase("INSTRUMENT") ||
+            tableName.equalsIgnoreCase("USER_ROLES")
+        );
+
+        return tableNames;
     }
 }
 

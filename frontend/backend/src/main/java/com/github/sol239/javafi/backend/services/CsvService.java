@@ -34,6 +34,10 @@ public class CsvService {
         dbHandler.insertCsvData(tableName, csvInputStream);
     }
 
+    public void createIndex(String tableName, String columnName) {
+        dbHandler.createIndex(tableName, columnName);
+    }
+
     public ResultSet getLastNRows(String tableName, int numberOfRows) {
         return dbHandler.getLastNRows(tableName, numberOfRows);
     }

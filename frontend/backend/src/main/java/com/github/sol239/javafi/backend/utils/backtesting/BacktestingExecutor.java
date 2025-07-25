@@ -4,9 +4,8 @@
 package com.github.sol239.javafi.backend.utils.backtesting;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.sol239.javafi.backend.controllers.BacktestResult;
-import com.github.sol239.javafi.backend.controllers.BacktestSummary;
-import com.github.sol239.javafi.backend.utils.DataObject;
+import com.github.sol239.javafi.backend.entity.BacktestResult;
+import com.github.sol239.javafi.backend.entity.BacktestSummary;
 import com.github.sol239.javafi.backend.utils.database.DBHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.ResultSet;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -184,6 +182,9 @@ public class BacktestingExecutor {
         this.winningTrades.clear();
         this.loosingTrades.clear();
 
+        System.out.println("TAKE PROFIT: " + takeProfit);
+        System.out.println("STOP LOSS: " + stopLoss);
+
         long t1 = System.currentTimeMillis();
 
         List<String> lines;
@@ -239,34 +240,54 @@ public class BacktestingExecutor {
                         Trade trade = iterator.next();
                         boolean tradeClosed = false;
 
-                        if (closePrice <= trade.stopPrice) {
-                            trade.closeTime = closeTime;
-                            trade.closePrice = closePrice;
-                            trade.PnL = (trade.closePrice * trade.amount - trade.openPrice * trade.amount) * strategy.setup.leverage * (1 - strategy.setup.fee);
-                            trade.closeReason = "stop loss";
-                            // TODO: Take Profit / Stop Loss checkbox
+                        if (stopLoss) {
+                            if (closePrice <= trade.stopPrice) {
+                                trade.closeTime = closeTime;
+                                trade.closePrice = closePrice;
+                                trade.PnL = (trade.closePrice * trade.amount - trade.openPrice * trade.amount) * strategy.setup.leverage * (1 - strategy.setup.fee);
+                                trade.closeReason = "stop loss";
 
-                            if (closePrice >= trade.openPrice) {
-                                trade.closeTimestamp = timestamp;
-                                winningTrades.add(trade);
-                            } else {
-                                trade.closeTimestamp = timestamp;
-                                loosingTrades.add(trade);
+                                if (closePrice >= trade.openPrice) {
+                                    trade.closeTimestamp = timestamp;
+                                    winningTrades.add(trade);
+                                } else {
+                                    trade.closeTimestamp = timestamp;
+                                    loosingTrades.add(trade);
+                                }
+                                iterator.remove();
+
+                                double profit = (trade.closePrice * trade.amount - trade.openPrice * trade.amount) * strategy.setup.leverage;
+                                strategy.setup.balance += profit;
+                                continue;
                             }
-                            iterator.remove();
-
-                            double profit = (trade.closePrice * trade.amount - trade.openPrice * trade.amount) * strategy.setup.leverage;
-                            strategy.setup.balance += profit;
-                            continue;
                         }
 
-                        // TODO: Take Profit / Stop Loss checkbox
+                        if (takeProfit) {
+                            if (closePrice >= trade.takePrice) {
+                                trade.closeTime = closeTime;
+                                trade.closePrice = closePrice;
+                                trade.PnL = (trade.closePrice * trade.amount - trade.openPrice * trade.amount) * strategy.setup.leverage * (1 - strategy.setup.fee);
+                                trade.closeReason = "take profit";
+
+                                if (closePrice >= trade.openPrice) {
+                                    trade.closeTimestamp = timestamp;
+                                    winningTrades.add(trade);
+                                } else {
+                                    trade.closeTimestamp = timestamp;
+                                    loosingTrades.add(trade);
+                                }
+                                iterator.remove();
+
+                                double profit = (trade.closePrice * trade.amount - trade.openPrice * trade.amount) * strategy.setup.leverage;
+                                strategy.setup.balance += profit;
+                                continue;
+                            }
+                        }
 
                         // It is generally good to specify that:
                         // - current close must be > than trade.open * (1 + takeProfit)
                         // - current close must be > than trade.open * (1 + fee)
                         if (close) {
-                            // TODO: Take Profit / Stop Loss checkbox
 
                             // If takeProfit is set, takePrice must reached to close the trade.
                             if (takeProfit) {
@@ -379,11 +400,11 @@ public class BacktestingExecutor {
                 trade.closeReason = "trade lifespan";
                 trade.PnL = (trade.closePrice * trade.amount - trade.openPrice * trade.amount) * setup.leverage * (1 - setup.fee);
                 if (closePrice >= trade.openPrice) {
-                    // TODO: this is not correct.
+                    // TODO: this is not  date.
                     trade.closeTimestamp = trade.openTimestamp + delaySeconds;
                     winningTrades.add(trade);
                 } else {
-                    // TODO: this is not correct.
+                    // TODO: this is not correct date.
                     trade.closeTimestamp = trade.openTimestamp + delaySeconds;
                     loosingTrades.add(trade);
                 }
@@ -424,9 +445,7 @@ public class BacktestingExecutor {
             else if (trade.takePrice < trade.openPrice) {
                 _profit += -((trade.closePrice * trade.amount - trade.openPrice * trade.amount) * (1 - trade.strategy.setup.fee));
             }
-
         }
-
 
         String summary = String.format(
                 "Winning trades: %d | Losing trades: %d | Total trades: %d | Win rate: %.2f%% | Profit: %.2f USD",
