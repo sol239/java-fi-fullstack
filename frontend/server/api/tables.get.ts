@@ -15,6 +15,12 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!res.ok) {
+      if (res.status === 401) {
+        throw createError({
+          statusCode: 401,
+          statusMessage: 'Unauthorized: Please log in'
+        })
+      }
       throw new Error(`Backend responded with status: ${res.status}`)
     }
 

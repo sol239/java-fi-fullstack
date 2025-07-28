@@ -145,7 +145,7 @@ class Chart {
 
         setTimeout(() => {
           this.series.setData(data);
-        }, 0);
+        }, 50);
       }
     });
   }
@@ -221,6 +221,11 @@ async function functionFetchData(beforeId, count = 50) {
   const encodedTableName = encodeURIComponent(currentTableName)
   const config = useRuntimeConfig()
   const backendBase = config.public.backendBase || 'http://localhost:8080'
+  if (!encodedTableName) {
+    console.warn("No table name provided, skipping data fetch.");
+    return [];
+  }
+  console.log("ID = ", beforeId, "COUNT = ", count, "TABLE = ", encodedTableName)
   const url = `${backendBase}/api/betweendata?table=${encodedTableName}&id1=${beforeId - count}&id2=${beforeId}`
 
   try {

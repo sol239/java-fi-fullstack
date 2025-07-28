@@ -10,12 +10,6 @@
         <UCard>
           <div class="flex items-center gap-4 mb-3">
             <TableNames />
-            <UPopover>
-              <UButton label="Add CSV" color="primary" variant="subtle" />
-              <template #content>
-                <CsvUploader />
-              </template>
-            </UPopover>
             <InstrumentExecutorForm />
           </div>
           <TableView />

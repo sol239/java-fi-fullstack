@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import { useAuthStore } from '~/stores/useAuthStore'
 import type { NavigationMenuItem } from '@nuxt/ui';
+
+const authStore = useAuthStore()
 
 // --- Navigation Items ---
 const navItems: NavigationMenuItem[] = [
@@ -17,20 +20,22 @@ const navItems: NavigationMenuItem[] = [
     data_target: 'charts',
   },
   {
-    label: 'Demo',
-    to: '/demo',
-    data_target: 'demo',
-  },
-  {
     label: 'Admin',
     icon: 'i-heroicons-wrench-screwdriver',
     to: '/admin',
     data_target: 'admin',
-  },];
+    adminOnly: true, // custom flag
+  },
+];
 
+const filteredNavItems = computed(() =>
+  navItems.filter(
+    item => !item.adminOnly || (authStore.userRoles && authStore.userRoles.includes('ADMIN'))
+  )
+)
 </script>
 
 
 <template>
-  <UNavigationMenu :items="navItems" class="w-full justify-end" />
+  <UNavigationMenu :items="filteredNavItems" class="w-full justify-end" />
 </template>

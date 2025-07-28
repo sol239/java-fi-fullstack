@@ -13,6 +13,30 @@
         />
       </UFormGroup>
 
+      <UFormGroup label="Description" required>
+        <UInput
+          v-model="formState.description"
+          placeholder="Enter description"
+          :disabled="isUploading"
+        />
+      </UFormGroup>
+
+      <UFormGroup label="Asset Name" required>
+        <UInput
+          v-model="formState.assetName"
+          placeholder="Enter asset name"
+          :disabled="isUploading"
+        />
+      </UFormGroup>
+
+      <UFormGroup label="Timeframe" required>
+        <UInput
+          v-model="formState.timeframe"
+          placeholder="Enter timeframe"
+          :disabled="isUploading"
+        />
+      </UFormGroup>
+
       <UFormGroup label="CSV File" required>
         <UInput
           type="file"
@@ -25,7 +49,7 @@
       <UButton
         type="submit"
         :loading="isUploading"
-        :disabled="!formState.tableName || !selectedFile"
+        :disabled="!formState.tableName || !formState.description || !formState.assetName || !formState.timeframe || !selectedFile"
         block
       >
         {{ isUploading ? "Uploading..." : "Upload CSV" }}
@@ -57,7 +81,10 @@ import { ref, reactive } from 'vue'
 import { useTableNamesStore } from '~/stores/useTableNamesStore'
 
 const formState = reactive({
-  tableName: ''
+  tableName: '',
+  description: '',
+  assetName: '',
+  timeframe: ''
 })
 
 const selectedFile = ref(null)
@@ -72,8 +99,14 @@ const handleFileChange = (event) => {
 }
 
 const uploadCsv = async () => {
-  if (!selectedFile.value || !formState.tableName) {
-    error.value = 'Please provide both table name and file.'
+  if (
+    !selectedFile.value ||
+    !formState.tableName ||
+    !formState.description ||
+    !formState.assetName ||
+    !formState.timeframe
+  ) {
+    error.value = 'Please provide all fields and file.'
     return
   }
 
@@ -86,6 +119,9 @@ const uploadCsv = async () => {
   try {
     const formData = new FormData()
     formData.append('tableName', formState.tableName)
+    formData.append('description', formState.description)
+    formData.append('assetName', formState.assetName)
+    formData.append('timeframe', formState.timeframe)
     formData.append('file', selectedFile.value)
 
     const response = await fetch('http://localhost:8080/api/csv/upload', {
@@ -99,6 +135,9 @@ const uploadCsv = async () => {
       message.value = text
       tableNamesStore.addTableName(formState.tableName)
       formState.tableName = ''
+      formState.description = ''
+      formState.assetName = ''
+      formState.timeframe = ''
       selectedFile.value = null
     } else {
       error.value = text

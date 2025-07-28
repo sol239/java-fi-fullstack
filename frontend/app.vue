@@ -71,7 +71,10 @@
 
 <script setup>
 import { useAuthStore } from '~/stores/useAuthStore'
+import { useUsersStore } from '#imports'
+
 const authStore = useAuthStore()
+const usersStore = useUsersStore()
 authStore.reset()
 
 const config = useRuntimeConfig()
@@ -81,22 +84,45 @@ const url = `${backendBase}/api/logout`
 function printUser() {
   if (authStore.isLoggedIn) {
     console.log('Current User:', authStore.user)
+    console.log('User Roles:', authStore.userRoles)
   } else {
     console.log('No user is logged in.')
   }
 }
 
 async function logout() {
-  authStore.reset()
+  console.log('Logging out...')
+  
   try {
-    await fetch(url, {
+    // First, call the server logout endpoint
+    const response = await fetch(url, {
       method: 'POST',
       credentials: 'include'
     })
+    
+    if (!response.ok) {
+      console.warn('Server logout failed, but continuing with client logout')
+    }
+    
+    // Clear client-side auth state
     authStore.logout()
-    window.location.reload() // přidej reload stránky
+    
+    // Force clear any authentication cookies client-side
+    document.cookie.split(";").forEach(function(c) { 
+      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+    });
+    
+    // Optional: Force a page refresh to ensure clean state
+    await navigateTo('/', { replace: true })
+
+    usersStore.reset() // Reset users store if needed
+    
+    console.log('Logout completed')
+
   } catch (err) {
     console.error('Logout failed:', err)
+    // Even if server logout fails, clear client state
+    authStore.logout()
   }
 }
 </script>

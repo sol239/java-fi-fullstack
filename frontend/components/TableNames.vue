@@ -30,10 +30,21 @@ import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { watch } from 'vue' // <-- import watch
 
-const { data: tableNames, pending, error, refresh } = await useFetch('/api/tables', {
+
+
+const config = useRuntimeConfig()
+const backendBase = config.public.backendBase || 'http://localhost:8080'
+
+const url = `${backendBase}/api/tables`
+
+const { data: tableNames, pending, error, refresh } = await useFetch(url, {
   default: () => [],
-  transform: (data) => data || []
+  transform: (data) => data || [],
+  credentials: 'include'
 })
+
+console.log("Fetched table names:", tableNames)
+
 
 const tableNamesStore = useTableNamesStore()
 const selectedTableStore = useSelectedTableStore()
@@ -49,6 +60,7 @@ const tableNamesArray = Array.isArray(tableNames.value)
 tableNamesStore.setTableNames(tableNamesArray)
 
 console.log("Current selected table:", selectedTableStore.selectedTable)
+console.log("Available table names:", tableNamesArray)
 
 // Set first table as default selection if available
 if (tableNamesArray.length && !selectedTableStore.selectedTable) {

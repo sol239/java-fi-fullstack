@@ -47,6 +47,18 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
             name: state.username,
         })
 
+        // Fetch user roles and store in authStore
+        try {
+            const roles = await $fetch<string[]>(`${backendBase}/api/users/${state.username}/roles`, {
+                method: 'GET',
+                credentials: 'include'
+            })
+            authStore.userRoles = roles
+        } catch (rolesErr) {
+            console.error('Failed to fetch user roles:', rolesErr)
+            authStore.userRoles = []
+        }
+
         // Redirect to dashboard or home
         router.push('/')
     } catch (err: any) {

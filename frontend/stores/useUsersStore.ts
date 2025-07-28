@@ -18,5 +18,9 @@ export const useUsersStore = defineStore('users', () => {
     }
   }
 
-  return { users, setUsers, deleteUser }
+  function reset() {
+    users.value = []
+  }
+
+  return { users, setUsers, deleteUser, reset }
 })
