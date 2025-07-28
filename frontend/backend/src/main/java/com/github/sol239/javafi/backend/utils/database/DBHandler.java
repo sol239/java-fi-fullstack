@@ -500,6 +500,13 @@ public class DBHandler {
         String tableName = "BTCUSD_1D";
         DBHandler handler = new DBHandler("jdbc:h2:file:./data/mydb");
 
+        // check whether the table already exists
+        List<String> tables = handler.getAllTables();
+        if (tables != null && tables.contains(tableName)) {
+            System.out.println("Table " + tableName + " already exists. Skipping creation.");
+            return;
+        }
+
         InputStream is;
         try {
             is = new FileInputStream("assets/csv/BTCUSD_1D.csv");
