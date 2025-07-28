@@ -10,6 +10,7 @@ import java.util.List;
  * Implementation of Bollinger Bands indicator.
  * @see <a href="https://www.investopedia.com/terms/b/bollingerbands.asp">Investopedia</a>
  */
+@ValidateInstrument
 @AutoService(JavaInstrument.class)
 public class BollingerBandUpper implements JavaInstrument {
 

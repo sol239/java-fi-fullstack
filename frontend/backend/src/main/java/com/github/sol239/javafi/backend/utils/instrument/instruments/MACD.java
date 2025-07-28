@@ -10,6 +10,7 @@ import java.util.List;
  * Implementation of Moving Average Convergence Divergence (MACD) indicator.
  * @see <a href="https://www.investopedia.com/terms/m/macd.asp">Investopedia</a>
  */
+@ValidateInstrument
 @AutoService(JavaInstrument.class)
 public class MACD implements JavaInstrument {
 

@@ -11,6 +11,7 @@ import java.util.List;
  * Implementation of Relative Strength Index (RSI) indicator.
  * @see <a href="https://www.investopedia.com/terms/r/rsi.asp">Investopedia</a>
  */
+@ValidateInstrument
 @AutoService(JavaInstrument.class)
 public class Rsi implements JavaInstrument {
 

@@ -10,6 +10,7 @@ import java.util.List;
  * Implementation of Simple Moving Average (SMA) indicator.
  * @see <a href="https://www.investopedia.com/terms/s/sma.asp">Investopedia</a>
  */
+@ValidateInstrument
 @AutoService(JavaInstrument.class)
 public class SMA implements JavaInstrument {
 

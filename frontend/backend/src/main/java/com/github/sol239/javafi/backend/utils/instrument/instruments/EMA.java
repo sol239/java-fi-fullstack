@@ -10,6 +10,7 @@ import java.util.List;
  * Implementation of Exponential Moving Average (EMA) indicator.
  * @see <a href="https://www.investopedia.com/terms/e/ema.asp">Investopedia</a>
  */
+@ValidateInstrument
 @AutoService(JavaInstrument.class)
 public class EMA implements JavaInstrument {
 
