@@ -18,14 +18,15 @@ public class TableService {
     }
 
     public List<String> getTableNames() {
-
-        // REMOVE: CHART, INSTRUMENT, USER_ROLES tables which are not OHLC tables
         List<String> tableNames = dbHandler.getAllTables();
         tableNames.removeIf(tableName ->
-            tableName.equalsIgnoreCase("CHART") ||
-            tableName.equalsIgnoreCase("INSTRUMENT") ||
-            tableName.equalsIgnoreCase("USER_ROLES")
+                tableName.equalsIgnoreCase("CHART") ||
+                        tableName.equalsIgnoreCase("INSTRUMENT") ||
+                        tableName.equalsIgnoreCase("USER_ROLES") ||
+                        tableName.toUpperCase().endsWith("_META")
         );
+
+        tableNames.forEach(tableName -> {System.out.println("Table: " + tableName);});
 
         return tableNames;
     }

@@ -1,6 +1,6 @@
 package com.github.sol239.javafi.backend.services;
 
-import com.github.sol239.javafi.backend.repositories.ChartRepository;
+import com.github.sol239.javafi.backend.repositories.RowRepository;
 import com.github.sol239.javafi.backend.utils.database.DBHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -14,15 +14,15 @@ import java.util.Map;
 @Service
 public class CsvService {
 
-    private final ChartRepository chartRepository;
+    private final RowRepository rowRepository;
     private final DBHandler dbHandler;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public CsvService(ChartRepository chartRepository, DBHandler dbHandler) {
-        this.chartRepository = chartRepository;
+    public CsvService(RowRepository rowRepository, DBHandler dbHandler) {
+        this.rowRepository = rowRepository;
         this.dbHandler = dbHandler;
     }
 

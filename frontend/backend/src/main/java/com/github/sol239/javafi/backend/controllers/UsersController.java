@@ -9,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,17 +29,29 @@ public class UsersController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @GetMapping("/{username}/roles")
+    public List<String> getUserRoles(@PathVariable String username) {
+        logger.info("GET:api/users/roles UsersController.getUserRoles() called for username: {}", username);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with username: " + username));
+
+        List<String> roles = new ArrayList<>(user.getRoles());
+        return roles;
+    }
+
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public List<User> getAllUsers() {
         logger.info("GET:api/users UsersController.getAllUsers() called");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = (authentication != null) ? authentication.getName() : "anonymous";
+
+        System.out.println(username);
+
         List<String> roles = authentication.getAuthorities()
                 .stream()
                 .map(a -> a.getAuthority())
                 .collect(Collectors.toList());
-        logger.info("Role uživatele {}: {}", username, roles);
         return userRepository.findAll();
     }
 

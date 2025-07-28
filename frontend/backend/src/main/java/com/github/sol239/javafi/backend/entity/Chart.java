@@ -1,44 +1,32 @@
 package com.github.sol239.javafi.backend.entity;
 
+
 import jakarta.persistence.*;
-
-import java.time.LocalDateTime;
-
 import lombok.Getter;
-import lombok.Setter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @Entity
 public class Chart {
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Column(nullable = false)
     private Long id;
 
     @Column(nullable = false)
-    private Long timestamp;
+    private String name;
 
     @Column(nullable = false)
-    private double open;
+    private String description;
 
     @Column(nullable = false)
-    private double high;
+    private String assetName;
 
     @Column(nullable = false)
-    private double low;
+    private String timeframe;
 
-    @Column(nullable = false)
-    private double close;
-
-    @Column(nullable = false)
-    private double volume;
-
-    @Column(nullable = false)
-    private LocalDateTime date;
-
-    @Column(columnDefinition = "TEXT")
-    private String extraData;
 }

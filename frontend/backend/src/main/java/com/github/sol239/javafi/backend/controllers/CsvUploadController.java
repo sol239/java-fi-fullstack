@@ -1,5 +1,7 @@
 package com.github.sol239.javafi.backend.controllers;
 
+import com.github.sol239.javafi.backend.entity.Chart;
+import com.github.sol239.javafi.backend.repositories.ChartJdbcRepository;
 import com.github.sol239.javafi.backend.services.CsvService;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,9 @@ public class CsvUploadController {
 
     private final CsvService csvService;
 
+    @Autowired
+    private ChartJdbcRepository chartJdbcRepository;
+
     public CsvUploadController(CsvService csvService) {
         this.csvService = csvService;
     }
@@ -35,6 +40,9 @@ public class CsvUploadController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> uploadCsv(
             @RequestParam("tableName") String tableName,
+            @RequestParam("description") String description,
+            @RequestParam("assetName") String assetName,
+            @RequestParam("timeframe") String timeframe,
             @RequestParam("file") MultipartFile file) {
 
         if (file.isEmpty()) {
@@ -56,6 +64,15 @@ public class CsvUploadController {
             csvService.insertCsvData(tableName, is);
             csvService.createIndex(tableName, "id");
             csvService.createIndex(tableName, "DATE");
+
+            Chart chart = new Chart();
+            chart.setName(tableName);
+            chart.setAssetName(assetName);
+            chart.setDescription(description);
+            chart.setTimeframe(timeframe);
+
+            chartJdbcRepository.save(chart, tableName);
+
             return ResponseEntity.ok("SUCCESS - Data inserted into table: " + tableName);
         } catch (IOException e) {
             return ResponseEntity.status(500).body("FAIL - Error processing file: " + e.getMessage());

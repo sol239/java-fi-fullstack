@@ -48,7 +48,7 @@ public class BacktestService {
 
 
         // TODO: date restriction is not used, so all
-        //backtestingExecutor.updateStrategiesColumns(tableName);   // TODO: does not have to be executed each time
+        backtestingExecutor.updateStrategiesColumns(tableName);   // TODO: does not have to be executed each time
         System.out.println("4. strategies columns updated.");
 
         System.out.println("5. backtesting started.");

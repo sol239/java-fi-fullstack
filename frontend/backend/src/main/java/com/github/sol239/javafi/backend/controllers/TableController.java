@@ -1,6 +1,8 @@
 package com.github.sol239.javafi.backend.controllers;
 
 import com.github.sol239.javafi.backend.auth.AuthUtil;
+import com.github.sol239.javafi.backend.entity.User;
+import com.github.sol239.javafi.backend.repositories.ChartJdbcRepository;
 import com.github.sol239.javafi.backend.services.CsvService;
 import com.github.sol239.javafi.backend.services.TableService;
 import org.slf4j.Logger;
@@ -46,5 +48,10 @@ public class TableController {
         String result = csvService.getLastId(tableName);
         logger.info("GET:api/tables/last/ TableController.getLastId() returned {} table for user: {}", result, username);
         return result;
+    }
+
+    @GetMapping("/meta")
+    public List<User> getMetaTables() {
+        return null;
     }
 }

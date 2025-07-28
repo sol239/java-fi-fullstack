@@ -1,7 +1,5 @@
 package com.github.sol239.javafi.backend.controllers;
 
-import com.github.sol239.javafi.backend.entity.Chart;
-import com.github.sol239.javafi.backend.repositories.ChartRepository;
 import com.github.sol239.javafi.backend.services.CsvService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -11,9 +9,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import static com.fasterxml.jackson.databind.type.LogicalType.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
