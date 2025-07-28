@@ -38,7 +38,14 @@ public class InstrumentHelper {
             stash.get(column).add(value);
         } else {
             // remove first added element
-            stash.get(column).removeFirst();
+            //stash.get(column).removeFirst();
+
+            // JAVA 17
+            List<Double> list = stash.get(column);
+            if (list != null && !list.isEmpty()) {
+                list.remove(0);
+            }
+
             stash.get(column).add(value);
         }
     }
