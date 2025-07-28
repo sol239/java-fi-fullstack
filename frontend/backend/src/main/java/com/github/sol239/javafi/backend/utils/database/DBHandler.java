@@ -2,6 +2,8 @@ package com.github.sol239.javafi.backend.utils.database;
 
 import com.github.sol239.javafi.backend.controllers.ChartDataController;
 import com.github.sol239.javafi.backend.entity.BacktestResult;
+import com.github.sol239.javafi.backend.entity.Chart;
+import com.github.sol239.javafi.backend.repositories.ChartJdbcRepository;
 import com.github.sol239.javafi.backend.utils.DataObject;
 import com.github.sol239.javafi.backend.utils.backtesting.BacktestingExecutor;
 import com.github.sol239.javafi.backend.utils.backtesting.Setup;
@@ -491,6 +493,68 @@ public class DBHandler {
             System.out.println("Error in batch insertColumns: " + e.getMessage());
             e.printStackTrace();
             return new DataObject(500, "server", "Error creating and updating columns: " + e.getMessage());
+        }
+    }
+
+    public static void dataInit() {
+        String tableName = "BTCUSD_1D";
+        DBHandler handler = new DBHandler("jdbc:h2:file:./data/mydb");
+
+        InputStream is;
+        try {
+            is = new FileInputStream("assets/csv/BTCUSD_1D.csv");
+
+        } catch (FileNotFoundException e) {
+            System.err.println("File not found: " + e.getMessage());
+            return;
+        }
+
+        handler.insertCsvData(tableName, is);
+        handler.createIndex(tableName, "id");
+        handler.createIndex(tableName, "DATE");
+
+        String instrumentConsoleString = "rsi:14";
+        String[] parts = instrumentConsoleString.split(":");
+        String[] args = parts[1].split(",");
+        Double[] doubleArgs = new Double[args.length];
+        for (int i = 0; i < args.length; i++) {
+            doubleArgs[i] = Double.parseDouble(args[i]);
+        }
+        String instrumentName = parts[0].trim();
+        Map<String, Double[]> instrumentArgs = new HashMap<>();
+        instrumentArgs.put(instrumentName, doubleArgs);
+
+        InstrumentExecutor instrumentExecutor = new InstrumentExecutor(handler);
+        instrumentExecutor.runInstrument(tableName, instrumentArgs);
+
+        Chart chart = new Chart();
+        chart.setName(tableName);
+        chart.setAssetName("BTC");
+        chart.setDescription("Bitcoin-USD daily data.");
+        chart.setTimeframe("1D");
+
+        String metaTable = tableName + "_META";
+
+        String createTableSql = "CREATE TABLE IF NOT EXISTS " + metaTable + " (" +
+                "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
+                "name VARCHAR(255), " +
+                "description VARCHAR(255), " +
+                "asset_name VARCHAR(255), " +
+                "timeframe VARCHAR(50)" +
+                ")";
+
+        handler.executeQuery(createTableSql);
+
+        String insertSql = "INSERT INTO " + metaTable + " (name, description, asset_name, timeframe) VALUES (?, ?, ?, ?)";
+        try (Connection conn = handler.getDataSource().getConnection();
+             PreparedStatement ps = conn.prepareStatement(insertSql)) {
+            ps.setString(1, chart.getName());
+            ps.setString(2, chart.getDescription());
+            ps.setString(3, chart.getAssetName());
+            ps.setString(4, chart.getTimeframe());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Error in inserting data: " + e.getMessage());
         }
     }
 

@@ -18,9 +18,7 @@ public class BackendApplication {
 	CommandLineRunner init(DBHandler dbHandler, InstrumentExecutor instrumentExecutor) {
 		return args -> {
 			try {
-				System.out.println("Connected");
-				int count = instrumentExecutor.getInstrumentCount();
-				System.out.println("Počet instrumentů: " + count);
+				DBHandler.dataInit();
 			} catch (Exception e) {
 				System.out.println("Error connecting to the database: " + e.getMessage());
 			}
