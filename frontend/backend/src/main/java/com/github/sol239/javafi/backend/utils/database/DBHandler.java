@@ -1,16 +1,23 @@
 package com.github.sol239.javafi.backend.utils.database;
 
 import com.github.sol239.javafi.backend.controllers.ChartDataController;
+import com.github.sol239.javafi.backend.entity.BacktestResult;
 import com.github.sol239.javafi.backend.utils.DataObject;
+import com.github.sol239.javafi.backend.utils.backtesting.BacktestingExecutor;
+import com.github.sol239.javafi.backend.utils.backtesting.Setup;
+import com.github.sol239.javafi.backend.utils.backtesting.Strategy;
 import com.github.sol239.javafi.backend.utils.instrument.IdValueRecord;
+import com.github.sol239.javafi.backend.utils.instrument.InstrumentExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 import java.io.*;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.*;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 @Component
 public class DBHandler {
@@ -20,6 +27,15 @@ public class DBHandler {
     @Autowired
     public DBHandler(DataSource dataSource) {
         this.dataSource = dataSource;
+    }
+
+    public DBHandler(String dbUrl) {
+        DriverManagerDataSource ds = new DriverManagerDataSource();
+        ds.setDriverClassName("org.h2.Driver");
+        ds.setUrl("jdbc:h2:file:./data/mydb");
+        ds.setUsername("sa");
+        ds.setPassword("");
+        this.dataSource = ds;
     }
 
     public static final List<String> SYSTEM_TABLES = Arrays.asList(
@@ -288,6 +304,7 @@ public class DBHandler {
     }
 
     public void executeQuery(String query) {
+        //System .out.println("Executing query: " + query);
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.execute(query);
@@ -475,6 +492,16 @@ public class DBHandler {
             e.printStackTrace();
             return new DataObject(500, "server", "Error creating and updating columns: " + e.getMessage());
         }
+    }
+
+    public DataSource getDataSource() {
+        return this.dataSource;
+    }
+
+    public static void main(String[] _args) {
+
+
+
     }
 }
 

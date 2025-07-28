@@ -35,6 +35,10 @@ public class BacktestService {
         Setup setup = new Setup(Double.parseDouble(balance), Double.parseDouble(leverage), Double.parseDouble(fee), Double.parseDouble(takeProfit), Double.parseDouble(stopLoss), Double.parseDouble(amount), riskReward, Integer.parseInt(maxTrades), Integer.parseInt(delaySeconds), dateRestriction, Integer.parseInt(tradeLifeSpanSeconds));
         Strategy strategy =     new Strategy(openClause, closeClause, Boolean.parseBoolean(takeProfitEnabled), Boolean.parseBoolean(stopLossEnabled),  setup);
 
+        System.out.println(setup.toString());
+        System.out.println("-----------------------------------------------");
+        System.out.println(strategy.toString());
+
         backtestingExecutor.clearStrategies();
         System.out.println("1. strategies cleared.");
 

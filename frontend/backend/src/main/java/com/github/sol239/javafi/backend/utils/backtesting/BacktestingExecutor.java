@@ -52,6 +52,13 @@ public class BacktestingExecutor {
         this.db.setFetchSize(1000);
     }
 
+    public BacktestingExecutor(DBHandler dbHandler, JdbcTemplate jdbcTemplate) {
+        this.strategies = new ArrayList<>();
+        this.db = dbHandler;
+        this.db.setFetchSize(1000);
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
     public void addStrategy(Strategy strategy) {
         this.strategies.add(strategy);
     }
@@ -198,6 +205,7 @@ public class BacktestingExecutor {
             rs = jdbcTemplate.queryForList(query);
             System.out.println("7. query executed successfully.");
         } catch (Exception e) {
+            System.out.println("Error executing query: " + e.getMessage());
             BacktestSummary errorSummary = new BacktestSummary(0, 0, 0, 0.0, 0.0);
             return new BacktestResult(errorSummary, new ArrayList<>());
         }
