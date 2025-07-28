@@ -6,34 +6,36 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Set;
+import java.util.ArrayList;
 
 @Repository
 public class ChartJdbcRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    // Optionally: maintain a whitelist of allowed table names for safety
-    private static final Set<String> ALLOWED_TABLES = Set.of("charts", "custom_chart_1", "custom_chart_2");
-
     public ChartJdbcRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     public List<Chart> findAll() {
-        String sql = "SELECT id, name, description, asset_name, timeframe FROM charts";
-        return jdbcTemplate.query(sql, chartRowMapper);
+        String tablesSql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME LIKE '%\\_META' ESCAPE '\\'";
+        List<String> metaTables = jdbcTemplate.queryForList(tablesSql, String.class);
+
+        List<Chart> allCharts = new ArrayList<>();
+        for (String table : metaTables) {
+            String sql = "SELECT id, name, description, asset_name, timeframe FROM " + table;
+            allCharts.addAll(jdbcTemplate.query(sql, chartRowMapper));
+        }
+        return allCharts;
     }
 
     public List<Chart> findAllFromTable(String tableName) {
-        validateTableName(tableName);
         String sql = "SELECT id, name, description, asset_name, timeframe FROM " + tableName;
         return jdbcTemplate.query(sql, chartRowMapper);
     }
 
     public int save(Chart chart, String tableName) {
         String metaTable = tableName + "_META";
-        validateTableName(metaTable);
 
         createMetaTableIfNotExists(metaTable);
 
@@ -54,12 +56,6 @@ public class ChartJdbcRepository {
                 "timeframe VARCHAR(50)" +
                 ")";
         jdbcTemplate.execute(createTableSql);
-    }
-
-    private void validateTableName(String tableName) {
-        if (!ALLOWED_TABLES.contains(tableName.toLowerCase())) {
-            throw new IllegalArgumentException("Invalid or unauthorized table name: " + tableName);
-        }
     }
 
     private final RowMapper<Chart> chartRowMapper = (rs, rowNum) -> {

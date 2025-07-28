@@ -30,5 +30,14 @@ public class TableService {
 
         return tableNames;
     }
+
+    public void deleteTable(String tableName) {
+        dbHandler.deleteTable(tableName);
+        dbHandler.deleteTable(tableName + "_META");
+    }
+
+    public void cleanTable(String tableName) {
+        dbHandler.clean(tableName);
+    }
 }
 
