@@ -4,8 +4,6 @@
 package com.github.sol239.javafi.backend.utils.backtesting;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.sol239.javafi.backend.entity.BacktestResult;
-import com.github.sol239.javafi.backend.entity.BacktestSummary;
 import com.github.sol239.javafi.backend.utils.database.DBHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -31,20 +29,48 @@ public class BacktestingExecutor {
      */
     public static final String STRATEGY_CLOSE_COLUMN_SUFFIX = "_stgC_";
 
+    /**
+     * List of trades that are currently opened.
+     */
+    private final List<Trade> openedTrades = new ArrayList<>();
 
-    private List<Trade> openedTrades = new ArrayList<>();
-    private List<Trade> loosingTrades = new ArrayList<>();
-    private List<Trade> winningTrades = new ArrayList<>();
+    /**
+     * List of trades that were closed with a profit.
+     */
+    private final List<Trade> loosingTrades = new ArrayList<>();
 
-    private Map<Integer, Setup> setups = new HashMap<>();
+    /**
+     * List of trades that were closed with a loss.
+     */
+    private final List<Trade> winningTrades = new ArrayList<>();
 
-    private DBHandler db;
 
+    /**
+     * Map of setups for strategies, indexed by their ID.
+     */
+    private final Map<Integer, Setup> setups = new HashMap<>();
+
+    /**
+     * Database handler for executing queries and managing database connections.
+     */
+    private final DBHandler db;
+
+    /**
+     * List of strategies to be executed in the backtesting.
+     */
     public List<Strategy> strategies;
 
+    /**
+     * JdbcTemplate for executing SQL queries.
+     */
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    /**
+     * Constructor for BacktestingExecutor.
+     *
+     * @param dbHandler the database handler to be used for executing queries
+     */
     @Autowired
     public BacktestingExecutor(DBHandler dbHandler) {
         this.strategies = new ArrayList<>();
@@ -52,6 +78,12 @@ public class BacktestingExecutor {
         this.db.setFetchSize(1000);
     }
 
+    /**
+     * Constructor for BacktestingExecutor with JdbcTemplate.
+     *
+     * @param dbHandler    the database handler to be used for executing queries
+     * @param jdbcTemplate the JdbcTemplate to be used for executing SQL queries
+     */
     public BacktestingExecutor(DBHandler dbHandler, JdbcTemplate jdbcTemplate) {
         this.strategies = new ArrayList<>();
         this.db = dbHandler;
@@ -59,6 +91,11 @@ public class BacktestingExecutor {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    /**
+     * Adds a strategy to the list of strategies to be executed in the backtesting.
+     *
+     * @param strategy The strategy to be added
+     */
     public void addStrategy(Strategy strategy) {
         this.strategies.add(strategy);
     }
@@ -73,7 +110,6 @@ public class BacktestingExecutor {
      * @return True if the difference between the two dates is greater than 'n' seconds, false otherwise
      */
     public static boolean isDifferenceGreaterThan(String dateString1, String dateString2, long n) {
-        // Ošetření různých formátů datumu
         LocalDateTime date1 = parseFlexibleDateTime(dateString1);
         LocalDateTime date2 = parseFlexibleDateTime(dateString2);
 
@@ -83,7 +119,13 @@ public class BacktestingExecutor {
         return differenceInSeconds > n;
     }
 
-    // Přidáno: Pomocná metoda pro parsování různých formátů datumu
+    /**
+     * Parses a date string in a flexible format, allowing for optional fractional seconds.
+     *
+     * @param dateString The date string to be parsed
+     * @return A LocalDateTime object representing the parsed date
+     * @throws IllegalArgumentException if the date format is unsupported
+     */
     private static LocalDateTime parseFlexibleDateTime(String dateString) {
         List<DateTimeFormatter> formatters = Arrays.asList(
                 DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SSSSSS]"),
@@ -95,7 +137,8 @@ public class BacktestingExecutor {
         for (DateTimeFormatter formatter : formatters) {
             try {
                 return LocalDateTime.parse(dateString, formatter);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         throw new IllegalArgumentException("Unsupported date format: " + dateString);
     }
@@ -139,10 +182,18 @@ public class BacktestingExecutor {
         //System.out.println("Strategy columns created.");
     }
 
+    /**
+     * Clears the list of strategies.
+     */
     public void clearStrategies() {
         this.strategies.clear();
     }
 
+    /**
+     * Creates the columns in the database table that store the signals for all strategies.
+     *
+     * @param tableName The name of the database table
+     */
     public void createStrategiesColumns(String tableName) {
         for (Strategy strategy : strategies) {
             this.createStrategyColumns(strategy, tableName);
@@ -176,6 +227,11 @@ public class BacktestingExecutor {
         //System.out.println("Strategy columns updated.");
     }
 
+    /**
+     * Updates the columns in the database table that store the signals for all strategies.
+     *
+     * @param tableName The name of the database table
+     */
     public void updateStrategiesColumns(String tableName) {
         for (Strategy strategy : strategies) {
             this.updateStrategyColumns(strategy, tableName);
@@ -183,6 +239,17 @@ public class BacktestingExecutor {
 
     }
 
+    /**
+     * Runs the backtest on the specified table with the given parameters.
+     *
+     * @param tableName            The name of the database table to run the backtest on
+     * @param tradeLifeSpanSeconds The lifespan of each trade in seconds
+     * @param takeProfit           Whether to enable take profit
+     * @param stopLoss             Whether to enable stop loss
+     * @param saveResultPath       The path to save the backtest results
+     * @param dateRestriction      Date restriction for trades (can be null)
+     * @return A BacktestResult containing the summary and list of trades
+     */
     public BacktestResult run(String tableName, long tradeLifeSpanSeconds, boolean takeProfit, boolean stopLoss, String saveResultPath, String dateRestriction) {
 
         this.openedTrades.clear();
@@ -384,6 +451,12 @@ public class BacktestingExecutor {
         */
     }
 
+    /**
+     * Saves the backtesting results to a file in JSON format.
+     *
+     * @param path   The path where the results will be saved
+     * @param trades The list of trades to be saved
+     */
     public void saveBacktesting(String path, List<Trade> trades) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -394,6 +467,15 @@ public class BacktestingExecutor {
         }
     }
 
+    /**
+     * Closes trades that have been open for longer than the specified delay.
+     *
+     * @param iterator     The iterator over the opened trades
+     * @param setup        The setup of the strategy
+     * @param closePrice   The price at which the trades are closed
+     * @param closeTime    The time at which the trades are closed
+     * @param delaySeconds The delay in seconds after which trades should be closed
+     */
     public void closeTrades(Iterator<Trade> iterator, Setup setup, double closePrice, String closeTime, long delaySeconds) {
         while (iterator.hasNext()) {
             Trade trade = iterator.next();
@@ -423,6 +505,13 @@ public class BacktestingExecutor {
         }
     }
 
+    /**
+     * Evaluates the trades and calculates the summary of the backtest.
+     *
+     * @param winningTrades List of trades that were closed with a profit
+     * @param loosingTrades List of trades that were closed with a loss
+     * @return A BacktestSummary object containing the evaluation results
+     */
     public static BacktestSummary evaluateTrades(List<Trade> winningTrades, List<Trade> loosingTrades) {
         long winningTradesCount = winningTrades.size();
         long loosingTradesCount = loosingTrades.size();

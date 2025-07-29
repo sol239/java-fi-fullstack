@@ -1,18 +1,12 @@
 package com.github.sol239.javafi.backend.utils.database;
 
-import com.github.sol239.javafi.backend.controllers.ChartDataController;
-import com.github.sol239.javafi.backend.entity.BacktestResult;
+import com.github.sol239.javafi.backend.dto.ChartDTO;
 import com.github.sol239.javafi.backend.entity.Chart;
-import com.github.sol239.javafi.backend.repositories.ChartJdbcRepository;
 import com.github.sol239.javafi.backend.utils.DataObject;
-import com.github.sol239.javafi.backend.utils.backtesting.BacktestingExecutor;
-import com.github.sol239.javafi.backend.utils.backtesting.Setup;
-import com.github.sol239.javafi.backend.utils.backtesting.Strategy;
 import com.github.sol239.javafi.backend.utils.instrument.IdValueRecord;
 import com.github.sol239.javafi.backend.utils.instrument.InstrumentExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 import java.io.*;
@@ -149,9 +143,9 @@ public class DBHandler {
         return null;
     }
 
-    public List<ChartDataController.ChartDTO> getDataFromToAsList(String tableName, String from, String to) {
+    public List<ChartDTO> getDataFromToAsList(String tableName, String from, String to) {
         String query = "SELECT * FROM " + tableName + " WHERE date >= '" + from + "' AND date <= '" + to + "';";
-        List<ChartDataController.ChartDTO> result = new ArrayList<>();
+        List<ChartDTO> result = new ArrayList<>();
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
@@ -164,7 +158,7 @@ public class DBHandler {
                 double close = rs.getDouble("close");
                 double volume = rs.getDouble("volume");
                 LocalDateTime date = rs.getObject("date", LocalDateTime.class);
-                result.add(new ChartDataController.ChartDTO(id, timestamp, open, high, low, close, volume, date));
+                result.add(new ChartDTO(id, timestamp, open, high, low, close, volume, date));
             }
         } catch (SQLException e) {
             System.out.println("Error executing query: " + e.getMessage());
@@ -185,9 +179,9 @@ public class DBHandler {
         }
     }
 
-    public List<ChartDataController.ChartDTO> getDataAfterAsList(String tableName, String afterDate, int numberOfRows) {
+    public List<ChartDTO> getDataAfterAsList(String tableName, String afterDate, int numberOfRows) {
         String query = "SELECT * FROM " + tableName + " WHERE date >= '" + afterDate + "' LIMIT " + numberOfRows + ";";
-        List<ChartDataController.ChartDTO> result = new ArrayList<>();
+        List<ChartDTO> result = new ArrayList<>();
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
@@ -200,7 +194,7 @@ public class DBHandler {
                 double close = rs.getDouble("close");
                 double volume = rs.getDouble("volume");
                 LocalDateTime date = rs.getObject("date", LocalDateTime.class);
-                result.add(new ChartDataController.ChartDTO(id, timestamp, open, high, low, close, volume, date));
+                result.add(new ChartDTO(id, timestamp, open, high, low, close, volume, date));
             }
         } catch (SQLException e) {
             System.out.println("Error executing query: " + e.getMessage());
@@ -209,9 +203,9 @@ public class DBHandler {
     }
 
 
-    public List<ChartDataController.ChartDTO> getDataBeforeAsList(String tableName, String beforeDate, int numberOfRows) {
+    public List<ChartDTO> getDataBeforeAsList(String tableName, String beforeDate, int numberOfRows) {
         String query = "SELECT * FROM " + tableName + " WHERE date <= '" + beforeDate + "' ORDER BY date DESC LIMIT " + numberOfRows + ";";
-        List<ChartDataController.ChartDTO> result = new ArrayList<>();
+        List<ChartDTO> result = new ArrayList<>();
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
@@ -224,7 +218,7 @@ public class DBHandler {
                 double close = rs.getDouble("close");
                 double volume = rs.getDouble("volume");
                 LocalDateTime date = rs.getObject("date", LocalDateTime.class);
-                result.add(new ChartDataController.ChartDTO(id, timestamp, open, high, low, close, volume, date));
+                result.add(new ChartDTO(id, timestamp, open, high, low, close, volume, date));
             }
         } catch (SQLException e) {
             System.out.println("Error executing query: " + e.getMessage());
@@ -232,9 +226,9 @@ public class DBHandler {
         return result;
     }
 
-    public List<ChartDataController.ChartDTO> getFirstNRowsAsList(String tableName, int numberOfRows) {
+    public List<ChartDTO> getFirstNRowsAsList(String tableName, int numberOfRows) {
         String query = "SELECT * FROM " + tableName + " ORDER BY TIMESTAMP ASC LIMIT " + numberOfRows + ";";
-        List<ChartDataController.ChartDTO> result = new ArrayList<>();
+        List<ChartDTO> result = new ArrayList<>();
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
@@ -247,7 +241,7 @@ public class DBHandler {
                 double close = rs.getDouble("close");
                 double volume = rs.getDouble("volume");
                 LocalDateTime date = rs.getObject("date", LocalDateTime.class);
-                result.add(new ChartDataController.ChartDTO(id, timestamp, open, high, low, close, volume, date));
+                result.add(new ChartDTO(id, timestamp, open, high, low, close, volume, date));
             }
         } catch (SQLException e) {
             System.out.println("Error executing query: " + e.getMessage());
@@ -269,9 +263,9 @@ public class DBHandler {
         }
     }
 
-    public List<ChartDataController.ChartDTO> getLastNRowsAsList(String tableName, int numberOfRows) {
+    public List<ChartDTO> getLastNRowsAsList(String tableName, int numberOfRows) {
         String query = "SELECT * FROM " + tableName + " ORDER BY TIMESTAMP DESC LIMIT " + numberOfRows + ";";
-        List<ChartDataController.ChartDTO> result = new ArrayList<>();
+        List<ChartDTO> result = new ArrayList<>();
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
@@ -284,7 +278,7 @@ public class DBHandler {
                 double close = rs.getDouble("close");
                 double volume = rs.getDouble("volume");
                 LocalDateTime date = rs.getObject("date", LocalDateTime.class);
-                result.add(new ChartDataController.ChartDTO(id, timestamp, open, high, low, close, volume, date));
+                result.add(new ChartDTO(id, timestamp, open, high, low, close, volume, date));
             }
         } catch (SQLException e) {
             System.out.println("Error executing query: " + e.getMessage());
@@ -569,10 +563,6 @@ public class DBHandler {
         return this.dataSource;
     }
 
-    public static void main(String[] _args) {
 
-
-
-    }
 }
 

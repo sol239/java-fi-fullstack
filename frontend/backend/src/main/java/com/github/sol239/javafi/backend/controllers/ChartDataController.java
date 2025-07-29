@@ -1,5 +1,6 @@
 package com.github.sol239.javafi.backend.controllers;
 
+import com.github.sol239.javafi.backend.dto.ChartDTO;
 import com.github.sol239.javafi.backend.services.CsvService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -13,21 +14,40 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Controller for handling chart data requests.
+ */
 @RestController
 @RequestMapping("/api")
 public class ChartDataController {
+
+    /**
+     * Logger for logging information and errors.
+     */
     private static final Logger logger = LoggerFactory.getLogger(ChartDataController.class);
 
-
+    /**
+     * The number of rows to fetch from the database for chart data.
+     */
     public static final int ROW_COUNT = 200;
 
+    /**
+     * Service for handling CSV data operations.
+     */
     @Autowired
     private CsvService csvService;
 
-    @GetMapping("/betweendata")
+    /**
+     * Fetches chart data for a specific table from id1 to id2.
+     * @param table the name of the table to fetch data from
+     * @param id1 the starting id for the data range
+     * @param id2 the ending id for the data range
+     * @return a list of ChartDTO objects containing the chart data
+     */
+    @GetMapping("/between")
     public List<ChartDTO> getDataBetween(@RequestParam String table, @RequestParam String id1,
                                          @RequestParam String id2) {
-        logger.info("GET:api/betweendata ChartDataController.getDataBetween() called for table: {} between ids: {} and {}", table, id1, id2);
+        logger.info("GET:api/between ChartDataController.getDataBetween() called for table: {} between ids: {} and {}", table, id1, id2);
         List<Map<String, Object>> rows = csvService.getDataFromTo(table, ROW_COUNT, id1, id2);
         List<ChartDTO> result = new ArrayList<>();
         for (Map<String, Object> row : rows) {
@@ -45,7 +65,12 @@ public class ChartDataController {
     }
 
 
-    @GetMapping("/data")
+    /**
+     * Fetches the last N rows of chart data from a specific table.
+     * @param table the name of the table to fetch data from
+     * @return a list of ChartDTO objects containing the last N rows of chart data
+     */
+    @GetMapping("/lastRows")
     public List<ChartDTO> getLastRows(@RequestParam String table) {
         logger.info("GET:api/data ChartDataController.getLastRows() called for table: {}", table);
         List<ChartDTO> result = new ArrayList<>();
@@ -68,26 +93,4 @@ public class ChartDataController {
         return result;
     }
 
-    // DTO for line chart data transfer
-    public static class ChartDTO {
-        public long id;
-        public long timestamp;
-        public double open;
-        public double high;
-        public double low;
-        public double close;
-        public double volume;
-        public LocalDateTime date;
-
-        public ChartDTO(long id, long timestamp, double open, double high, double low, double close, double volume, LocalDateTime date) {
-            this.id = id;
-            this.timestamp = timestamp;
-            this.open = open;
-            this.high = high;
-            this.low = low;
-            this.close = close;
-            this.volume = volume;
-            this.date = date;
-        }
-    }
 }

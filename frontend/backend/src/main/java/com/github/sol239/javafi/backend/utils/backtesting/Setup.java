@@ -64,6 +64,21 @@ public class Setup {
      */
     public int tradeLifeSpanSeconds;
 
+    /**
+     * Constructor for Setup.
+     *
+     * @param balance Current balance.
+     * @param leverage Leverage used for trading.
+     * @param fee Fee for each trade.
+     * @param takeProfit Take profit percentage.
+     * @param stopLoss Stop loss percentage.
+     * @param amount Amount of money to be used for each trade.
+     * @param riskReward Risk reward ratio.
+     * @param maxTrades Maximum number of trades to be opened at the same time.
+     * @param delaySeconds Delay in seconds between each trade.
+     * @param dateRestriction Date restriction for the trades.
+     * @param tradeLifeSpanSeconds Maximum number of seconds a trade can be open.
+     */
     public Setup(double balance, double leverage, double fee, double takeProfit, double stopLoss, double amount, double riskReward, int maxTrades, int delaySeconds, String dateRestriction, int tradeLifeSpanSeconds) {
         this.balance = balance;
         this.leverage = leverage;
@@ -79,10 +94,10 @@ public class Setup {
         this.tradeLifeSpanSeconds = tradeLifeSpanSeconds;
     }
 
-    public Setup() {
-
-    }
-
+    /**
+     * Returns a string representation of the Setup object.
+     * @return String representation of the Setup object.
+     */
     @Override
     public String toString() {
         return "balance = " + balance + "\n" +
@@ -99,7 +114,11 @@ public class Setup {
                 "tradeLifeSpanSeconds = " + tradeLifeSpanSeconds;
     }
 
-
+    /**
+     * Creates a Setup object from a JSON file.
+     * @param jsonPath Path to the JSON file.
+     * @return Setup object or null if an error occurs.
+     */
     public static Setup fromJson(String jsonPath) {
         ObjectMapper mapper = new ObjectMapper();
         try {

@@ -1,6 +1,6 @@
 package com.github.sol239.javafi.backend.benchmark;
 
-import com.github.sol239.javafi.backend.entity.BacktestResult;
+import com.github.sol239.javafi.backend.utils.backtesting.BacktestResult;
 import com.github.sol239.javafi.backend.utils.backtesting.BacktestingExecutor;
 import com.github.sol239.javafi.backend.utils.backtesting.Setup;
 import com.github.sol239.javafi.backend.utils.backtesting.Strategy;
@@ -17,6 +17,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * A benchmark for the BacktestingExecutor class.
+ */
 @BenchmarkMode(Mode.SingleShotTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @State(Scope.Thread)
@@ -25,6 +28,10 @@ import java.util.concurrent.TimeUnit;
 @Measurement(iterations = 3)
 public class BacktestingExecutorBenchmark {
 
+    /**
+     * Benchmark method to run a backtest.
+     * This method creates a table, inserts data, runs an instrument, and executes a backtest.
+     */
     @Benchmark
     public void runBacktestBenchmark () {
         String tableName = "BENCHMARK_TABLE";
@@ -74,14 +81,14 @@ public class BacktestingExecutorBenchmark {
         boolean takeProfitEnabled = false;
         boolean stopLossEnabled = true;
 
-        String openClause = "WHERE rsi_14_ins_ <= 30"; // RSI overbought
-        String closeClause =  "WHERE rsi_14_ins_ >= 70"; // RSI oversold
+        String openClause = "WHERE rsi_14_ins_ <= 30";
+        String closeClause =  "WHERE rsi_14_ins_ >= 70";
 
         com.github.sol239.javafi.backend.utils.backtesting.Setup setup = new Setup(balance, leverage,fee, takeProfit, stopLoss, amount,
                 riskReward, maxTrades, delaySeconds, dateRestriction, tradeLifeSpanSeconds);
         Strategy strategy = new Strategy(openClause, closeClause, takeProfitEnabled, stopLossEnabled,  setup);
 
-        DataSource dataSource = handler.getDataSource(); // Přidejte getter do DBHandler
+        DataSource dataSource = handler.getDataSource();
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         BacktestingExecutor backtestingExecutor = new BacktestingExecutor(handler, jdbcTemplate);
 
@@ -89,10 +96,7 @@ public class BacktestingExecutorBenchmark {
 
         backtestingExecutor.addStrategy(strategy);
 
-        // Also does not have to be executed each time but it is quite fast.
         backtestingExecutor.createStrategiesColumns(tableName);
-
-
 
         backtestingExecutor.updateStrategiesColumns(tableName);
         BacktestResult result =  backtestingExecutor.run(tableName, setup.tradeLifeSpanSeconds, strategy.takeProfit, strategy.stopLoss, "C:/Users/David/Desktop/result.json", setup.dateRestriction);

@@ -7,7 +7,16 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
 
+/**
+ * Main class to run JMH benchmarks.
+ */
 public class Main {
+
+    /**
+     * Main method to execute the JMH benchmarks. It saves benchmarks in BENCHMARK_RESULT_PATH stored in .env file.
+     * @param args Command line arguments (not used)
+     * @throws Exception if an error occurs while reading the properties file or running the benchmarks
+     */
     public static void main(String[] args) throws Exception {
         Properties env = new Properties();
         try (InputStream input = new FileInputStream(".env")) {

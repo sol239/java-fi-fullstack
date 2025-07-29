@@ -14,6 +14,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Benchmark for the InstrumentExecutor class.
+ */
 @BenchmarkMode(Mode.SingleShotTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @State(Scope.Thread)
@@ -23,6 +26,10 @@ import java.util.concurrent.TimeUnit;
 public class InstrumentExecutorBenchmark {
 
 
+    /**
+     * This benchmark tests the performance of creating a table, inserting data from a CSV file and calculating
+     * the RSI (Relative Strength Index) using the InstrumentExecutor class.
+     */
     @Benchmark
     public void createTableAndCalculateRsi() {
 

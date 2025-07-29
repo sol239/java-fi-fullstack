@@ -6,7 +6,17 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * Repository interface for managing Row entities.
+ * Provides methods to perform CRUD operations on Row entities.
+ */
 @Repository
 public interface RowRepository extends JpaRepository<Row, Long> {
+
+    /**
+     * Finds all Row entities that match the given extraData.
+     * @param extraData the extra data to search for in Row entities
+     * @return a list of Row entities that match the given extraData
+     */
     List<Row> findByExtraData(String extraData);
 }

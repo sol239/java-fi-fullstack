@@ -9,6 +9,9 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Benchmark for inserting CSV data into a database table.
+ */
 @BenchmarkMode(Mode.SingleShotTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @State(Scope.Thread)
@@ -17,6 +20,10 @@ import java.util.concurrent.TimeUnit;
 @Measurement(iterations = 3)
 public class CsvInsertBenchmark {
 
+    /**
+     * Inserts CSV data into a database table and measures the time taken.
+     * The table is created, indexed, and then deleted after the operation.
+     */
     @Benchmark
     public void insertCsvData() {
         String tableName = "BENCHMARK_TABLE";

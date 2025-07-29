@@ -21,14 +21,15 @@ public class InstrumentExecutor {
      */
     JavaInstrument[] availableInstruments;
 
+    /**
+     * Constructor for InstrumentExecutor.
+     * It uses ServiceLoader to load all available JavaInstrument implementations.
+     * @param dbHandler the database handler
+     */
     @Autowired
     public InstrumentExecutor(DBHandler dbHandler) {
         ServiceLoader<JavaInstrument> loader = ServiceLoader.load(JavaInstrument.class);
         this.availableInstruments = loader.stream().map(ServiceLoader.Provider::get).toArray(JavaInstrument[]::new);
-        InstrumentExecutor.staticDbHandler = dbHandler;
-    }
-
-    public static void setDbHandler(DBHandler dbHandler) {
         InstrumentExecutor.staticDbHandler = dbHandler;
     }
 
@@ -133,6 +134,12 @@ public class InstrumentExecutor {
         }
     }
 
+    /**
+     * Get the database column name for an instrument.
+     * @param instruments the instruments map
+     * @param instrumentName the name of the instrument
+     * @return the database column name for the instrument
+     */
     public static String getInstrumentDBColumnName(Map<String, Double[]> instruments, String instrumentName) {
         StringBuilder params = new StringBuilder();
         for (Double param : instruments.get(instrumentName)) {

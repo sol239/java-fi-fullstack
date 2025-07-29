@@ -10,18 +10,30 @@ import jakarta.servlet.http.Cookie;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Controller for handling logout requests.
+ */
 @RestController
 @RequestMapping("/api/logout")
 public class LogoutController {
+
+    /**
+     * Logger for LogoutController.
+     */
     private static final Logger logger = LoggerFactory.getLogger(LogoutController.class);
 
+    /**
+     * Handles POST requests to log out the user.
+     * Invalidates the session and expires the session cookie.
+     *
+     * @param request  the HttpServletRequest
+     * @param response the HttpServletResponse
+     * @return a ResponseEntity indicating the logout status
+     */
     @PostMapping
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         logger.info("POST:api/logout LogoutController.logout() called");
-        // Invalidate session
         request.getSession().invalidate();
-
-        // Expire the session cookie
         Cookie cookie = new Cookie("JSESSIONID", null);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
