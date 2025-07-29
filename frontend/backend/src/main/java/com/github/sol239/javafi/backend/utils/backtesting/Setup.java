@@ -65,6 +65,13 @@ public class Setup {
     public int tradeLifeSpanSeconds;
 
     /**
+     * Default constructor for Setup used in unit tests.
+     */
+    public Setup() {
+
+    }
+
+    /**
      * Constructor for Setup.
      *
      * @param balance Current balance.

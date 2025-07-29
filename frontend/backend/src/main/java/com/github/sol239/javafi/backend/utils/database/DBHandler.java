@@ -15,16 +15,31 @@ import java.time.LocalDateTime;
 import java.util.*;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
+/**
+ * Database handler for managing database operations such as connecting, querying, and manipulating tables.
+ * Provides methods to retrieve table names, clean tables, delete tables, and execute various SQL queries.
+ */
 @Component
 public class DBHandler {
 
+    /**
+     * DataSource for managing database connections.
+     */
     private final DataSource dataSource;
 
+    /**
+     * Constructor for DBHandler.
+     * @param dataSource the DataSource to be used for database operations
+     */
     @Autowired
     public DBHandler(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
+    /**
+     * Default constructor that initializes the DataSource with H2 database settings.
+     * The database file is located at ./data/mydb.
+     */
     public DBHandler(String dbUrl) {
         DriverManagerDataSource ds = new DriverManagerDataSource();
         ds.setDriverClassName("org.h2.Driver");
@@ -34,6 +49,9 @@ public class DBHandler {
         this.dataSource = ds;
     }
 
+    /**
+     * List of system tables that should not be included in general table queries.
+     */
     public static final List<String> SYSTEM_TABLES = Arrays.asList(
             "CONSTANTS",
             "ENUM_VALUES",
@@ -52,6 +70,10 @@ public class DBHandler {
             "USERS"
     );
 
+    /**
+     * Checks if the database connection is active.
+     * @return true if connected, false otherwise
+     */
     public boolean isConnected() {
         try (Connection conn = dataSource.getConnection()) {
             return conn != null && !conn.isClosed();
@@ -60,6 +82,10 @@ public class DBHandler {
         }
     }
 
+    /**
+     * Retrieves all table names from the database, excluding system tables.
+     * @return a list of table names
+     */
     public List<String> getAllTables() {
         try (Connection conn = dataSource.getConnection()) {
             DatabaseMetaData dbmd = conn.getMetaData();
@@ -78,6 +104,11 @@ public class DBHandler {
         }
     }
 
+    /**
+     * Cleans a specified table by removing all columns except for the essential ones.
+     * This method retains the columns: TIMESTAMP, OPEN, HIGH, LOW, CLOSE, VOLUME, DATE, and ID.
+     * @param tableName the name of the table to be cleaned
+     */
     public void clean(String tableName) {
         String sql = "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '" + tableName.toUpperCase() + "';";
         try (Connection conn = dataSource.getConnection();
@@ -105,6 +136,10 @@ public class DBHandler {
         }
     }
 
+    /**
+     * Deletes a specified table from the database.
+     * @param tableName the name of the table to be deleted
+     */
     public void deleteTable(String tableName) {
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
@@ -116,8 +151,11 @@ public class DBHandler {
         }
     }
 
-    // DEPRECATED: Use getResultSetAsList instead to avoid connection leaks
-    @Deprecated
+    /**
+     * Retrieves a ResultSet for a given SQL query.
+     * @param query the SQL query to execute
+     * @return a ResultSet containing the results of the query
+     */
     public ResultSet getResultSet(String query) {
         System.err.println("WARNING: getResultSet is deprecated and causes connection leaks. Use getResultSetAsList instead.");
         try {
@@ -129,6 +167,11 @@ public class DBHandler {
         }
     }
 
+    /**
+     * Retrieves a last ID from a specified table.
+     * @param tableName the name of the table from which to retrieve the last ID
+     * @return the last ID as a String, or null if an error occurs
+     */
     public String getLastId(String tableName) {
         String query = "SELECT COUNT(id) AS row_count FROM " + tableName + ";";
         try (Connection conn = dataSource.getConnection();
@@ -143,6 +186,13 @@ public class DBHandler {
         return null;
     }
 
+    /**
+     * Retrieves data from a specified table within a range defined by from and to.
+     * @param tableName the name of the table from which to retrieve data
+     * @param from the starting ID for the range
+     * @param to the ending ID for the range
+     * @return a list of maps representing the data retrieved
+     */
     public List<ChartDTO> getDataFromToAsList(String tableName, String from, String to) {
         String query = "SELECT * FROM " + tableName + " WHERE date >= '" + from + "' AND date <= '" + to + "';";
         List<ChartDTO> result = new ArrayList<>();
@@ -166,7 +216,13 @@ public class DBHandler {
         return result;
     }
 
-    // DEPRECATED: Use getDataAfterAsList instead
+    /**
+     * Retrieves data from a specified table after a given date.
+     * @param tableName the name of the table from which to retrieve data
+     * @param afterDate the date after which to retrieve data
+     * @param numberOfRows the maximum number of rows to retrieve
+     * @return a ResultSet containing the data retrieved, or null if an error occurs
+     */
     @Deprecated
     public ResultSet getDataAfter(String tableName, String afterDate, int numberOfRows) {
         String query = "SELECT * FROM " + tableName + " WHERE date >= '" + afterDate + "' LIMIT " + numberOfRows + ";";
@@ -179,6 +235,13 @@ public class DBHandler {
         }
     }
 
+    /**
+     * Retrieves data from a specified table after a given date as a list of ChartDTO objects.
+     * @param tableName the name of the table from which to retrieve data
+     * @param afterDate the date after which to retrieve data
+     * @param numberOfRows the maximum number of rows to retrieve
+     * @return a list of ChartDTO objects containing the data retrieved
+     */
     public List<ChartDTO> getDataAfterAsList(String tableName, String afterDate, int numberOfRows) {
         String query = "SELECT * FROM " + tableName + " WHERE date >= '" + afterDate + "' LIMIT " + numberOfRows + ";";
         List<ChartDTO> result = new ArrayList<>();
@@ -202,7 +265,13 @@ public class DBHandler {
         return result;
     }
 
-
+    /**
+     * Retrieves data from a specified table before a given date as a list of ChartDTO objects.
+     * @param tableName the name of the table from which to retrieve data
+     * @param beforeDate the date before which to retrieve data
+     * @param numberOfRows the maximum number of rows to retrieve
+     * @return a list of ChartDTO objects containing the data retrieved
+     */
     public List<ChartDTO> getDataBeforeAsList(String tableName, String beforeDate, int numberOfRows) {
         String query = "SELECT * FROM " + tableName + " WHERE date <= '" + beforeDate + "' ORDER BY date DESC LIMIT " + numberOfRows + ";";
         List<ChartDTO> result = new ArrayList<>();
@@ -226,6 +295,12 @@ public class DBHandler {
         return result;
     }
 
+    /**
+     * Retrieves the first N rows from a specified table as a list of ChartDTO objects.
+     * @param tableName the name of the table from which to retrieve data
+     * @param numberOfRows the number of rows to retrieve
+     * @return a list of ChartDTO objects containing the data retrieved
+     */
     public List<ChartDTO> getFirstNRowsAsList(String tableName, int numberOfRows) {
         String query = "SELECT * FROM " + tableName + " ORDER BY TIMESTAMP ASC LIMIT " + numberOfRows + ";";
         List<ChartDTO> result = new ArrayList<>();
@@ -249,7 +324,13 @@ public class DBHandler {
         return result;
     }
 
-    // DEPRECATED: Use getLastNRowsAsList instead
+    /**
+     * Returns the last N rows from a table as a ResultSet.
+     * @deprecated Use getLastNRowsAsList instead.
+     * @param tableName the name of the table
+     * @param numberOfRows the number of rows to retrieve
+     * @return ResultSet with the data, or null on error
+     */
     @Deprecated
     public ResultSet getLastNRows(String tableName, int numberOfRows) {
         System.err.println("WARNING: getLastNRows is deprecated and causes connection leaks. Use getLastNRowsAsList instead.");
@@ -263,6 +344,12 @@ public class DBHandler {
         }
     }
 
+    /**
+     * Returns the last N rows from a table as a list of ChartDTO objects.
+     * @param tableName the name of the table
+     * @param numberOfRows the number of rows to retrieve
+     * @return list of ChartDTO objects
+     */
     public List<ChartDTO> getLastNRowsAsList(String tableName, int numberOfRows) {
         String query = "SELECT * FROM " + tableName + " ORDER BY TIMESTAMP DESC LIMIT " + numberOfRows + ";";
         List<ChartDTO> result = new ArrayList<>();
@@ -286,6 +373,10 @@ public class DBHandler {
         return result;
     }
 
+    /**
+     * Sets the fetch size for queries.
+     * @param size the fetch size
+     */
     public void setFetchSize(int size) {
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
@@ -295,10 +386,18 @@ public class DBHandler {
         }
     }
 
+    /**
+     * Closes the database connection.
+     * Note: Not needed, as Spring manages the DataSource and connections are closed automatically in try-with-resources.
+     */
     public void closeConnection() {
         // Není potřeba, Spring spravuje DataSource a připojení se zavírají automaticky v try-with-resources.
     }
 
+    /**
+     * Executes the given SQL query (e.g., CREATE, ALTER, DROP, INSERT, UPDATE).
+     * @param query the SQL query to execute
+     */
     public void executeQuery(String query) {
         //System .out.println("Executing query: " + query);
         try (Connection conn = dataSource.getConnection();
@@ -399,6 +498,12 @@ public class DBHandler {
         }
     }
 
+    /**
+     * Vloží nové sloupce do tabulky a aktualizuje jejich hodnoty podle zadané mapy.
+     * @param tableName název tabulky
+     * @param columnMap mapa názvů sloupců na seznam hodnot (IdValueRecord)
+     * @return DataObject s výsledkem operace
+     */
     public DataObject insertColumns(String tableName, HashMap<String, List<IdValueRecord>> columnMap) {
         try (Connection conn = dataSource.getConnection()) {
             for (String columnName : columnMap.keySet()) {
@@ -434,6 +539,12 @@ public class DBHandler {
         }
     }
 
+    /**
+     * Vloží nové sloupce do tabulky a aktualizuje jejich hodnoty dávkově podle zadané mapy.
+     * @param tableName název tabulky
+     * @param columnMap mapa názvů sloupců na seznam hodnot (IdValueRecord)
+     * @return DataObject s výsledkem operace
+     */
     public DataObject insertColumnsBatch(String tableName, HashMap<String, List<IdValueRecord>> columnMap) {
         try (Connection conn = dataSource.getConnection()) {
             boolean originalAutoCommit = conn.getAutoCommit();
@@ -490,6 +601,10 @@ public class DBHandler {
         }
     }
 
+    /**
+     * Initializes the database with data for the table BTCUSD_1D, if it does not already exist.
+     * Inserts data from a CSV file, creates indexes, and runs instrument calculations.
+     */
     public static void dataInit() {
         String tableName = "BTCUSD_1D";
         DBHandler handler = new DBHandler("jdbc:h2:file:./data/mydb");
@@ -559,10 +674,12 @@ public class DBHandler {
         }
     }
 
+    /**
+     * Returns the used DataSource.
+     * @return DataSource instance
+     */
     public DataSource getDataSource() {
         return this.dataSource;
     }
 
-
 }
-
