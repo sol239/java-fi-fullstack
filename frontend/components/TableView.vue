@@ -221,12 +221,9 @@ async function functionFetchData(beforeId, count = 50) {
   const encodedTableName = encodeURIComponent(currentTableName)
   const config = useRuntimeConfig()
   const backendBase = config.public.backendBase || 'http://localhost:8080'
-  if (!encodedTableName) {
-    console.warn("No table name provided, skipping data fetch.");
-    return [];
-  }
+  
   console.log("ID = ", beforeId, "COUNT = ", count, "TABLE = ", encodedTableName)
-  const url = `${backendBase}/api/betweendata?table=${encodedTableName}&id1=${beforeId - count}&id2=${beforeId}`
+  const url = `${backendBase}/api/between?table=${encodedTableName}&id1=${beforeId - count}&id2=${beforeId}`
 
   try {
     const data = await $fetch(url, {
@@ -261,7 +258,7 @@ async function getTableLastIndex(tableName) {
     const encodedTableName = encodeURIComponent(tableName)
     const config = useRuntimeConfig()
     const backendBase = config.public.backendBase || 'http://localhost:8080'
-    const res = await fetch(`${backendBase}/api/tables/last?tableName=${encodedTableName}`, {
+    const res = await fetch(`${backendBase}/api/tables/lastId?tableName=${encodedTableName}`, {
       credentials: 'include'
     })
     lastIndex = await res.text()
@@ -271,6 +268,8 @@ async function getTableLastIndex(tableName) {
     return "0";
   }
 }
+
+
 
 onMounted(async () => {
   window.lastIndex1Reached = false; // Reset flag on mount
@@ -300,8 +299,6 @@ onMounted(async () => {
 
     await ch.setSeriesData(200) // <-- await here
     ch.addMarkers()
-
-    //const chartData = await ch.datafeed.getBars(200)
 
   }
 })
@@ -353,7 +350,7 @@ async function fetchChartData() {
 
     const config = useRuntimeConfig()
     const backendBase = config.public.backendBase || 'http://localhost:8080'
-    const url = `${backendBase}/api/data?table=${encodedTableName}`
+    const url = `${backendBase}/api/lastRows?table=${encodedTableName}`
 
     // Use $fetch for client-side requests
     const data = await $fetch(url, {
@@ -393,10 +390,6 @@ async function fetchChartData() {
   >
     {{ markersVisible ? 'Hide Markers' : 'Show Markers' }}
   </UButton>
-
-  <!-- TODO: Add switch for chart/table view -->
-  <!-- <USwitch v-model="chartView" /> -->
-
 
 
   <div v-if="chartView" ref="chartContainer" style="width: auto; height: 600px; margin-top: 20px;"></div>

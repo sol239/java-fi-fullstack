@@ -114,7 +114,6 @@ const uploadCsv = async () => {
   error.value = ''
   message.value = ''
 
-  // TODO: fix api endpoint
 
   try {
     const formData = new FormData()
@@ -124,7 +123,7 @@ const uploadCsv = async () => {
     formData.append('timeframe', formState.timeframe)
     formData.append('file', selectedFile.value)
 
-    const response = await fetch('http://localhost:8080/api/csv/upload', {
+    const response = await fetch('http://localhost:8080/api/tables/upload', {
       method: 'POST',
       body: formData,
       credentials: 'include'

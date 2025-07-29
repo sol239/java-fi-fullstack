@@ -18,6 +18,7 @@ const toast = useToast()
 const router = useRouter()
 const config = useRuntimeConfig()
 const backendBase = config.public.backendBase
+const authStore = useAuthStore()
 
 console.log('Backend base URL:', backendBase)
 
@@ -42,22 +43,11 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
         })
 
         // Set login state in Pinia store
-        const authStore = useAuthStore()
         authStore.login({
             name: state.username,
         })
 
-        // Fetch user roles and store in authStore
-        try {
-            const roles = await $fetch<string[]>(`${backendBase}/api/users/${state.username}/roles`, {
-                method: 'GET',
-                credentials: 'include'
-            })
-            authStore.userRoles = roles
-        } catch (rolesErr) {
-            console.error('Failed to fetch user roles:', rolesErr)
-            authStore.userRoles = []
-        }
+
 
         // Redirect to dashboard or home
         router.push('/')
@@ -68,6 +58,18 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
             color: 'error'
         })
         console.error('Login error:', err)
+    }
+
+    // Fetch user roles and store in authStore
+    try {
+        const roles = await $fetch<string[]>(`${backendBase}/api/users/${state.username}/roles`, {
+            method: 'GET',
+            credentials: 'include'
+        })
+        authStore.userRoles = roles
+    } catch (rolesErr) {
+        console.error('Failed to fetch user roles:', rolesErr)
+        authStore.userRoles = []
     }
 }
 </script>

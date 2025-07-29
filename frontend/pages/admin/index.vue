@@ -3,6 +3,7 @@
 import UsersTable from '@/components/admin/UsersTable.vue'
 import AddUser from '@/components/admin/AddUser.vue'
 import MetaTable from '~/components/admin/MetaTable.vue';
+import ServerStatus from '@/components/admin/ServerStatus.vue';
 </script>
 
 
@@ -18,5 +19,7 @@ import MetaTable from '~/components/admin/MetaTable.vue';
     <UsersTable />
     <USeparator color="primary" type="solid" class="mt-4" />
     <MetaTable />
+    <USeparator color="primary" type="solid" class="mt-4" />
+    <ServerStatus />
 
 </template>
