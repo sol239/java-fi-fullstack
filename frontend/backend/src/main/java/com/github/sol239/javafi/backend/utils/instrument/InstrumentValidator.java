@@ -68,6 +68,12 @@ public class InstrumentValidator {
                     System.out.println("- Instrument name is valid ✅.");
                 }
 
+                if (instance.getCommandExampleUsage() == null || instance.getCommandExampleUsage().isBlank()) {
+                    System.out.println("- " + clazz.getName() + ": getCommandExampleUsage() must return a non-empty string. ⛔");
+                } else {
+                    System.out.println("- Instrument example is valid ✅.");
+                }
+
                 if (instance.getDescription() == null || instance.getDescription().isBlank()) {
                     System.out.println("- " + clazz.getName() + ": getDescription() must return a non-empty string. ⛔");
                 } else {

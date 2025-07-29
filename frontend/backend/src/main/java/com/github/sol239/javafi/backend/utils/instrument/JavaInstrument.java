@@ -22,6 +22,12 @@ public interface JavaInstrument {
     String getName();
 
     /**
+     * Get the exact command usage for the instrument.
+     * @return the command usage
+     */
+    String getCommandExampleUsage();
+
+    /**
      * Get the description of the instrument.
      * @return the description of the instrument
      */

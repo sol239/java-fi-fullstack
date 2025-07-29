@@ -33,6 +33,11 @@ public class EMA implements JavaInstrument {
         return "ema";
     }
 
+    @Override
+    public String getCommandExampleUsage() {
+        return "ema:14";
+    }
+
     /**
      * Get the description of the instrument.
      * @return the description of the instrument

@@ -33,6 +33,11 @@ public class MACD implements JavaInstrument {
         return "macd";
     }
 
+    @Override
+    public String getCommandExampleUsage() {
+        return "macd:1,12,26,9";
+    }
+
     /**
      * Get the description of the instrument.
      * @return the description of the instrument

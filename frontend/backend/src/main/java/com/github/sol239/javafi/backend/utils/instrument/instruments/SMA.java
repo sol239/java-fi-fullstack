@@ -33,6 +33,11 @@ public class SMA implements JavaInstrument {
         return "sma";
     }
 
+    @Override
+    public String getCommandExampleUsage() {
+        return "sma:30";
+    }
+
     /**
      * Get the description of the instrument.
      * @return the description of the instrument

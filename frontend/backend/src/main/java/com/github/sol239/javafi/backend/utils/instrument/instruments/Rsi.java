@@ -34,6 +34,11 @@ public class Rsi implements JavaInstrument {
         return "rsi";
     }
 
+    @Override
+    public String getCommandExampleUsage() {
+        return "rsi:14";
+    }
+
     /**
      * Get the description of the instrument.
      * @return the description of the instrument

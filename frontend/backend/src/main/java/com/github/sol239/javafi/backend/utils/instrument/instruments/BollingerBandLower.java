@@ -36,6 +36,11 @@ public class BollingerBandLower implements JavaInstrument {
         return "bbl";
     }
 
+    @Override
+    public String getCommandExampleUsage() {
+        return "bbl:20,2";
+    }
+
     /**
      * Get the description of the instrument.
      * @return the description of the instrument

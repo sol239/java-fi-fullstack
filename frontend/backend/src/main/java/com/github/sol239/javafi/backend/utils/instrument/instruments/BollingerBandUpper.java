@@ -33,6 +33,11 @@ public class BollingerBandUpper implements JavaInstrument {
         return "bbu";
     }
 
+    @Override
+    public String getCommandExampleUsage() {
+        return "bbu:20,2";
+    }
+
     /**
      * Get the description of the instrument.
      * @return the description of the instrument
