@@ -61,7 +61,7 @@ BACKEND_BASE=http://localhost:8080
     ![alt text](docs/png/image-2.png)
 
     - Add/Delete/Clean (removing columns for instruments and strategies) a table (csv).
-    - Add/Delete/Enable/Disable (disabked users cannot login) a user.
+    - Add/Delete/Enable/Disable (disabled users cannot login) a user.
     - Reset user's password.
 
 - **Charts Page (/charts)**: Displays available charts and contains backtesting functionality.
