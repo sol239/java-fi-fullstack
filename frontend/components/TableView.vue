@@ -2,6 +2,7 @@
 import { ref, onMounted, watch } from 'vue'
 import * as LightweightCharts from 'lightweight-charts'
 import { useSelectedTableStore } from '~/stores/useSelectedTableStore'
+import { useBacktestResultStore } from '~/stores/useBacktestResultStore'
 const backtestResultStore = useBacktestResultStore()
 const { backtestResult } = storeToRefs(backtestResultStore)
 
@@ -46,6 +47,8 @@ class Datafeed {
     console.log("FETCHING: ", this._earliestId, numberOfExtraBars)
     const historicalData = await functionFetchData(this._earliestId, numberOfExtraBars);
     console.log("Historical data length:", historicalData.length);
+    console.log("Hi :)")
+    console.log("Historical data:", historicalData)
     /*
     if (historicalData.length === 0) {
       console.log("REACHED 1")
@@ -66,6 +69,10 @@ class Datafeed {
       console.log(this.earliestId)
 
     }*/
+
+    console.log("HI");
+    console.log("Earliest ID after fetch:", this._earliestId);
+    console.log("DATA:", this._data);
     return this._data;
   }
 }
@@ -87,6 +94,9 @@ class Chart {
   }
 
   addMarkers() {
+
+
+
     if (!backtestResult.value || !backtestResult.value.allTrades) {
       console.warn('No backtest result or trades available.');
       return;
@@ -118,10 +128,11 @@ class Chart {
   }
 
   showMarkers() {
+    console.log("HI");
+    console.log(this.series);
     if (markersVisible.value) {
       this.markerPrimitive.setMarkers([]);
       this.markerPrimitive.detach();
-
       markersVisible.value = false
     } else {
       // Only show markers that fit in the range of loaded data
@@ -141,7 +152,6 @@ class Chart {
         // load more data
         const numberBarsToLoad = 50 - logicalRange.from;
         const data = await this.datafeed.getBars(numberBarsToLoad);
-
 
         setTimeout(() => {
           this.series.setData(data);
@@ -175,6 +185,7 @@ class Chart {
   }
 
   setSeries() {
+    console.log("Setting series with chart settings:", this.chartSettings);
     this.series = this.chart.addSeries(LightweightCharts.CandlestickSeries, {
       borderVisible: false,
       wickUpColor: '#26a69a',
@@ -186,6 +197,7 @@ class Chart {
   }
 
   async setSeriesData(count) {
+    console.log("Setting series data with count:", count);
     const bars = await this.datafeed.getBars(count);
     if (this.series) {
       this.series.setData(bars);
@@ -196,6 +208,7 @@ class Chart {
   }
 
   clearSeries() {
+    console.log("Clearing series");
     if (this.series && this.chart) {
       this.chart.removeSeries(this.series);
     }
@@ -221,7 +234,7 @@ async function functionFetchData(beforeId, count = 50) {
   const encodedTableName = encodeURIComponent(currentTableName)
   const config = useRuntimeConfig()
   const backendBase = config.public.backendBase || 'http://localhost:8080'
-  
+
   console.log("ID = ", beforeId, "COUNT = ", count, "TABLE = ", encodedTableName)
   const url = `${backendBase}/api/between?table=${encodedTableName}&id1=${beforeId - count}&id2=${beforeId}`
 
@@ -330,6 +343,16 @@ watch(() => selectedTableStore.selectedTable, async (newTableName) => {
   }
 }, { immediate: true })
 
+// Add this watch to update markers when backtestResult changes
+watch(backtestResult, () => {
+  ch.clearMarkers();
+  ch.addMarkers();
+  // Optionally, update marker visibility if markers are currently shown
+  if (markersVisible.value) {
+    ch.showMarkers();
+  }
+});
+
 const chartView = ref(true)
 const data = ref([]) // <-- Add reactive data for table
 
@@ -380,14 +403,9 @@ async function fetchChartData() {
 </script>
 
 <template>
-  <UButton
-    color="primary"
-    @click="ch.showMarkers()"
-    :icon="markersVisible ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
-    :variant="markersVisible ? 'outline' : 'solid'"
-    size="md"
-    class="mb-2"
-  >
+  <UButton color="primary" @click="ch.showMarkers()"
+    :icon="markersVisible ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'" :variant="markersVisible ? 'outline' : 'solid'"
+    size="md" class="mb-2">
     {{ markersVisible ? 'Hide Markers' : 'Show Markers' }}
   </UButton>
 

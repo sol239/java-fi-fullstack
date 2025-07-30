@@ -77,7 +77,13 @@ public class BacktestController {
             @RequestParam String stopLossEnabled,
             @RequestParam String takeProfitEnabled
     ) {
-        logger.info("POST:api/backtest/run BacktestController.runBacktest() called for table: {}", tableName);
+        logger.info("POST:api/backtest/run BacktestController.runBacktest() called for table: {}", tableName, ", with params: balance=" + balance
+                + ", leverage=" + leverage + ", fee=" + fee + ", takeProfit=" + takeProfit
+                + ", stopLoss=" + stopLoss + ", amount=" + amount + ", maxTrades=" + maxTrades
+                + ", delaySeconds=" + delaySeconds + ", dateRestriction=" + dateRestriction
+                + ", tradeLifeSpanSeconds=" + tradeLifeSpanSeconds + ", openClause=" + openClause
+                + ", closeClause=" + closeClause + ", stopLossEnabled=" + stopLossEnabled
+                + ", takeProfitEnabled=" + takeProfitEnabled);
         BacktestResult result = backtestService.runBackTest(
                 tableName,
                 balance,

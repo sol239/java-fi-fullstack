@@ -76,9 +76,11 @@
 <script setup>
 import { useAuthStore } from '~/stores/useAuthStore'
 import { useUsersStore } from '#imports'
+import { useBacktestResultStore } from '#imports'
 
 const authStore = useAuthStore()
 const usersStore = useUsersStore()
+const backtestStore = useBacktestResultStore()
 authStore.reset()
 
 const config = useRuntimeConfig()
@@ -117,6 +119,7 @@ async function logout() {
     await navigateTo('/', { replace: true })
 
     usersStore.reset() // Reset users store if needed
+    backtestStore.backtestResult = null;
 
     console.log('Logout completed')
 
