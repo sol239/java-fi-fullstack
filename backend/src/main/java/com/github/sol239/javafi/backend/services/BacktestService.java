@@ -82,8 +82,7 @@ public class BacktestService {
         //System.out.println("4. strategies columns updated.");
 
         //System.out.println("5. backtesting started.");
-        BacktestResult result =  backtestingExecutor.run(tableName, setup.tradeLifeSpanSeconds, strategy.takeProfit, strategy.stopLoss, "C:/Users/David/Desktop/result.json", setup.dateRestriction); // TODO: hardwired path, path can  be omitted
-        //System.out.println("6. backtesting finished.");
+        BacktestResult result =  backtestingExecutor.run(tableName, setup.tradeLifeSpanSeconds, strategy.takeProfit, strategy.stopLoss, "", setup.dateRestriction);
 
         return result;
     }
