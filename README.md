@@ -68,6 +68,7 @@ npm run dev
 ### Running frontend with docker or docker-compose.
 
 When running the frontend with Docker or Docker Compose, you may encounter issues with the TradingView's LightweightChart's infinite data scroll feature.
+This issue in not present when running the frontend without Docker with `npm run dev`.
 
 ### Trade markers are not updating.
 

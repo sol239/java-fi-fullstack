@@ -1,75 +1,39 @@
-# Nuxt Minimal Starter
+# Frontend
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+## Description
 
-## Setup
+This is the frontend part of the Java FI Fullstack application, built with Nuxt.js. It provides a user interface for interacting with the backend services.
 
-Make sure to install dependencies:
+### Structure
 
-```bash
-# npm
+The application is structured as ordinary Nuxt.js project: ./pages contains the pages, ./components contains reusable components, and ./app/assets/css contains global styles.
+
+---
+
+## Run
+
+### Docker
+```shell
+docker build -t java-fi-frontend . 
+docker run -p 3001:80 java-fi-frontend 
+# Adjust port if needed (Grafana default is 3000)
+```
+
+### Without Docker
+
+```shell
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+### Port Configuration
 
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
+You can define the ports in `.env` file:
+```env
+PORT=3005
+BACKEND_BASE=http://localhost:8080
 ```
+- Where `PORT` is the port for the Nuxt application.
+- `BACKEND_BASE` is the base URL for the backend API.
 
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+---

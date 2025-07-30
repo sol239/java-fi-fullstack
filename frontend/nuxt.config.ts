@@ -5,7 +5,7 @@ export default defineNuxtConfig({
 
   devServer: {
     port: Number(process.env.PORT) || 3001,
-    host: '0.0.0.0',  // expose server to outside (e.g. Docker)
+    host: '0.0.0.0',
   },
 
   css: ['~/app/assets/css/main.css'],
