@@ -416,7 +416,7 @@ onMounted(async () => {
                         <UButton type="submit" color="primary" :loading="isRunning" :disabled="isRunning">
                             {{ isRunning ? "Running..." : "Backtest" }}
                         </UButton>
-                        <UButton color="primary" variant="outline" :disabled="isRunning">Save</UButton>
+                        <!--<UButton color="primary" variant="outline" :disabled="isRunning">Save</UButton>-->
                         <div class="flex items-center gap-2">
                             <label class="block font-medium" title="Run instruments after backtest.">Run
                                 Instruments</label>

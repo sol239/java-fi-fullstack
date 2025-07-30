@@ -63,7 +63,7 @@ npm run dev
 
 ---
 
-## Known Issues
+## Known Issues ⛔
 
 ### Running frontend with docker or docker-compose.
 

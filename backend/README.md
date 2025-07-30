@@ -106,3 +106,16 @@ You can run the benchmarks by running the main method in the `backend\src\main\j
 
 ---
 
+## Initial Data
+
+### Market Data
+
+The application on the first run will insert a BTC table from `./assets/csv` and it will also create indices for the table.
+
+### User Data
+
+The application on the first run creates 3 users: admin (password), user1 (password1), and user2 (password2).
+This can be changed in `backend\src\main\java\com\github\sol239\javafi\backend\config\UserInitialization.java`.
+The passwords are hashed using BCrypt and can be changed in the frontend application.
+
+---

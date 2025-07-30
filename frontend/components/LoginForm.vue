@@ -87,7 +87,7 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
         </UFormField>
 
         <UButton type="submit">
-            Submit
+            Login
         </UButton>
     </UForm>
 </template>
