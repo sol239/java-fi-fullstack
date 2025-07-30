@@ -1,6 +1,5 @@
 # Backend ignore rules
 /backend/HELP.md
-/backend/target/
 /backend/.mvn/wrapper/maven-wrapper.jar
 !/backend/**/src/main/**/target/
 !/backend/**/src/test/**/target/
@@ -28,6 +27,8 @@
 /backend/.vscode/
 /backend/data/
 /backend/benchmark/
+/backend/${project.build.directory}
+/backend/target/
 
 # Frontend ignore rules
 /frontend/.output
