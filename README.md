@@ -94,6 +94,10 @@ You can find an example in `./backend/assets/csv/BTCUSD_1D.csv`
 | 2   | 2014-11-29 00:00:00 | 376.42 | 386.60 | 372.25 | 376.72 | 2746157.05 | 1417219200 |
 | ... | ...                 | ...    | ...    | ...    | ...    | ...        | ...        |
 
+> [!WARNING]  
+> Only admin users can add or delete tables. The application does not support editing existing tables.
+> Non-admin users can only view the tables and their data but they can run instruments.
+
 ---
 
 ## Contact
