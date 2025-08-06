@@ -61,6 +61,11 @@ npm install
 npm run dev
 ```
 
+> [!INFO]
+> You can log in with the following credentials:
+> - **Username**: `admin`
+> - **Password**: `admin`
+
 ---
 
 ## Known Issues ⛔
