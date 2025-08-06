@@ -64,7 +64,7 @@ npm run dev
 > [!NOTE]
 > You can log in with the following credentials:
 > - **Username**: `admin`
-> - **Password**: `admin`
+> - **Password**: `password`
 
 ---
 
