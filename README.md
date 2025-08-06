@@ -1,4 +1,4 @@
-# Java Full Stack Application
+# Java-Fi Full Stack Application
 
 ## Description
 
